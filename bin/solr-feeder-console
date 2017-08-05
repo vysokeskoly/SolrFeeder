@@ -4,7 +4,14 @@
 namespace VysokeSkoly\SolrFeeder;
 
 use Symfony\Component\Console\Application;
-use Symfony\Component\Process\ProcessBuilder;
+use VysokeSkoly\SolrFeeder\Command\FeedCommand;
+use VysokeSkoly\SolrFeeder\Facade\FeedFacade;
+use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
+use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
+use VysokeSkoly\SolrFeeder\Service\DataMapper;
+use VysokeSkoly\SolrFeeder\Service\SolrFactory;
+use VysokeSkoly\SolrFeeder\Service\SolrFeeder;
+use VysokeSkoly\SolrFeeder\Service\XmlParser;
 
 function requireIfExists(string $file)
 {
@@ -28,11 +35,18 @@ if (!requireIfExists(__DIR__ . '/../vendor/autoload.php') // when used directly
 date_default_timezone_set('Europe/Prague');
 
 // services definition
+$feedFacade = new FeedFacade(
+    new XmlParser(),
+    new DatabaseFactory(),
+    new DatabaseModel(new DataMapper()),
+    new SolrFactory(),
+    new SolrFeeder()
+);
 
 // app definition
 $application = new Application('solr-feeder-console', '1.0.0');
 $application->addCommands([
-
+    new FeedCommand($feedFacade),
 ]);
 $application->run();
 
