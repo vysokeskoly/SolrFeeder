@@ -56,6 +56,7 @@ class XmlParser
             ) = $dataArray['db'];
 
         $dsn = str_replace('jdbc:', '', $connection);
+        $password = empty($password) ? '' : $password;
 
         return new Database($driver, $dsn, $user, $password);
     }
@@ -102,11 +103,15 @@ class XmlParser
                 ? null
                 : ListCollection::ofT('array', $batch['columnMap']['map'])
                     ->map(
-                        function (array $maping): ColumnMapping {
-                            $attr = $maping[self::ATTR];
+                        function (array $mapping): ColumnMapping {
+                            $attr = $mapping[self::ATTR];
                             list('src' => $column, 'dst' => $destination) = $attr;
 
-                            return new ColumnMapping($column, $destination, $attr['separator'] ?? null);
+                            return new ColumnMapping(
+                                $column,
+                                $destination,
+                                $this->parseSeparator($attr['separator'] ?? null)
+                            );
                         },
                         ColumnMapping::class
                     );
@@ -115,6 +120,11 @@ class XmlParser
         }
 
         return new Feeding($batchMap);
+    }
+
+    private function parseSeparator(?string $separator): ?string
+    {
+        return empty($separator) ? $separator : str_replace("\\", '', $separator);
     }
 
     private function parseSolr(array $dataArray): Solr

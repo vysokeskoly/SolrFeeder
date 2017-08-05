@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectorConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/apps/jaxb-ri-2.2.7/bin/config.xsd">
+  <lockFile>var/tmp/vysokeskoly.txt</lockFile>
+  <statusReportFile>var/status/status-report-vysokeskoly.txt</statusReportFile>
+  <log4jConfig>etc/log4j-vysokeskoly.properties</log4jConfig>
+  <db>
+    <driver>org.mysql.Driver</driver>
+    <connection>jdbc:mysql://localhost:3306/test</connection>
+    <user>root</user>
+    <password></password>
+
+    <credentialsFile>etc/db-credentials-vysokeskoly.xml</credentialsFile>
+
+    <timestamps file="var/timestamp/last-timestamps-vysokeskoly.xml" >
+        <timestamp type="datetime" name="timestamp" column="ts" lastValuePlaceholder="%%LAST_TIMESTAMP%%" currValuePlaceholder="%%CURRENT_TIMESTAMP%%" default="1970-01-01 00:00:00"/>
+        <timestamp type="datetime" name="updated" column="updated" lastValuePlaceholder="%%LAST_UPDATED%%" currValuePlaceholder="%%CURRENT_UPDATED%%" default="1970-01-01 00:00:00"/>
+        <timestamp type="datetime" name="deleted" column="deleted" lastValuePlaceholder="%%LAST_DELETED%%" currValuePlaceholder="%%CURRENT_DELETED%%" default="1970-01-01 00:00:00"/>
+    </timestamps>
+
+    <feeding>
+      <feedingBatch name="add" type="add">
+        <idColumn>study_id</idColumn>
+        <mainSelect><![CDATA[
+          SELECT *
+          FROM study
+          WHERE updated >= %%LAST_UPDATED%%
+          ORDER BY updated ASC
+            ]]>
+        </mainSelect>
+        <columnMap>
+            <map src="study_keyword" dst="study_keyword" separator="\|" />
+            <map src="study_name" dst="study_name" />
+            <map src="study_name" dst="study_name_str" />
+            <map src="updated" dst="_ignored" /><!-- will be stored in lastmodified field - see the SQL query above -->
+        </columnMap>
+      </feedingBatch>
+
+      <feedingBatch name="delete" type="delete">
+        <idColumn>study_id</idColumn>
+        <mainSelect><![CDATA[
+          SELECT study_id, deleted FROM study WHERE deleted >= %%LAST_DELETED%%
+         ]]></mainSelect>
+
+
+      </feedingBatch>
+
+    </feeding>
+
+
+  </db>
+
+  <feeder>
+      <solr>
+        <url>http://solr:8983/solr/vysokeskoly</url>
+        <connectionType>http</connectionType>
+        <readTimeout>200000</readTimeout>
+        <batchSizeDocs>100</batchSizeDocs>
+      </solr>
+  </feeder>
+
+</ConnectorConfig>

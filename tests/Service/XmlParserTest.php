@@ -73,7 +73,7 @@ class XmlParserTest extends TestCase
                     'study_id',
                     'SELECT * FROM studies_solr WHERE updated >= %%LAST_UPDATED%% ORDER BY updated ASC',
                     ListCollection::ofT(ColumnMapping::class, [
-                        new ColumnMapping('study_keyword', 'study_keyword', '\|'),
+                        new ColumnMapping('study_keyword', 'study_keyword', '|'),
                         new ColumnMapping('study_name', 'study_name'),
                         new ColumnMapping('study_name', 'study_name_str'),
                         new ColumnMapping('updated', '_ignored'),

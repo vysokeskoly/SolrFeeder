@@ -12,6 +12,7 @@ use VysokeSkoly\SolrFeeder\Service\DataMapper;
 use VysokeSkoly\SolrFeeder\Service\SolrFactory;
 use VysokeSkoly\SolrFeeder\Service\SolrFeeder;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
+use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 
 function requireIfExists(string $file)
 {
@@ -38,7 +39,7 @@ date_default_timezone_set('Europe/Prague');
 $feedFacade = new FeedFacade(
     new XmlParser(),
     new DatabaseFactory(),
-    new DatabaseModel(new DataMapper()),
+    new DatabaseModel(new DataMapper(), new StringHelper()),
     new SolrFactory(),
     new SolrFeeder()
 );

@@ -7,17 +7,13 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractTestCase extends TestCase
 {
-    protected function copyFile(string $path, string $source, string $target): string
+    protected function databaseSafeTest(callable $test): void
     {
-        $hostsSourcePath = $path . $source;
-        $targetPath = $path . $target;
-
-        if (file_exists($targetPath)) {
-            unlink($targetPath);
+        try {
+            $test();
+        } catch (\PDOException $e) {
+            $this->markTestSkipped(sprintf('Database factory test skipped due: %s', $e->getMessage()));
         }
-        copy($hostsSourcePath, $targetPath);
-
-        return $targetPath;
     }
 
     public function tearDown()

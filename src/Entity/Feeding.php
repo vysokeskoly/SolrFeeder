@@ -13,4 +13,12 @@ class Feeding
     {
         $this->batchMap = $batchMap;
     }
+
+    /**
+     * @return FeedingBatch[]|IMap
+     */
+    public function getBatchMap(): IMap
+    {
+        return $this->batchMap;
+    }
 }

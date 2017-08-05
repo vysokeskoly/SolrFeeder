@@ -49,10 +49,12 @@ class FeedFacade
         $lock->lock(true);
 
         $database = $this->databaseFactory->createConnection($config->getDatabase());
-        $data = $this->model->getData($database, $config->getFeeding(), $io);
-
         $solr = $this->solrFactory->createConnection($config->getSolr());
-        $this->feeder->feedSolr($solr, $data, $io);
+
+        foreach ($config->getFeeding()->getBatchMap() as $batch) {
+            $data = $this->model->getData($database, $config->getTimestamps(), $batch, $io);
+            $this->feeder->feedSolr($solr, $data, $io);
+        }
 
         $lock->release();
     }
