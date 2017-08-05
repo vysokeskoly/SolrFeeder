@@ -1,6 +1,9 @@
 VysokeSkoly/SolrFeeder
 ======================
 
+[![Build Status](https://travis-ci.org/vysokeskoly/SolrFeeder.svg?branch=master)](https://travis-ci.org/vysokeskoly/SolrFeeder)
+[![Coverage Status](https://coveralls.io/repos/github/vysokeskoly/SolrFeeder/badge.svg?branch=master)](https://coveralls.io/github/vysokeskoly/SolrFeeder?branch=master)
+
 Data feeder for SOLR
 
 ## Installation
