@@ -5,3 +5,5 @@ bin/
 !/bin/solr-feeder-console
 
 .php_cs.cache
+
+var/

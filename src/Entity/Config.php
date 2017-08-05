@@ -38,10 +38,24 @@ class Config
         $this->solr = $solr;
     }
 
+    public function getLockFile(): string
+    {
+        return $this->lockFile;
+    }
+
+    public function getStatusReportFile(): string
+    {
+        return $this->statusReportFile;
+    }
 
     public function getDatabase(): Database
     {
         return $this->database;
+    }
+
+    public function getTimestamps(): Timestamps
+    {
+        return $this->timestamps;
     }
 
     public function getFeeding(): Feeding

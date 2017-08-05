@@ -3,6 +3,7 @@
 namespace VysokeSkoly\SolrFeeder\Facade;
 
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Filesystem\LockHandler;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
 use VysokeSkoly\SolrFeeder\Service\SolrFactory;
@@ -44,10 +45,15 @@ class FeedFacade
     {
         $config = $this->xmlParser->parseConfig($configPath);
 
+        $lock = new LockHandler('solr-feeder:feed', $config->getLockFile());
+        $lock->lock(true);
+
         $database = $this->databaseFactory->createConnection($config->getDatabase());
         $data = $this->model->getData($database, $config->getFeeding(), $io);
 
         $solr = $this->solrFactory->createConnection($config->getSolr());
         $this->feeder->feedSolr($solr, $data, $io);
+
+        $lock->release();
     }
 }
