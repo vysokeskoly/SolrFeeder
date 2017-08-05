@@ -1,0 +1,5 @@
+/vendor/
+/code-coverage/
+
+bin/
+!/bin/docker-ip-console
