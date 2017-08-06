@@ -2,6 +2,7 @@
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
+use Assert\Assertion;
 use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\ListCollection;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -9,6 +10,7 @@ use VysokeSkoly\SolrFeeder\Entity\FeedingBatch;
 use VysokeSkoly\SolrFeeder\Entity\Timestamp;
 use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 use VysokeSkoly\SolrFeeder\Utils\StringHelper;
+use function Functional\with;
 
 class DatabaseModel
 {
@@ -33,21 +35,15 @@ class DatabaseModel
         FeedingBatch $batch,
         SymfonyStyle $io = null
     ): IList {
-        if ($io) {
-            $this->io = $io;
-            $this->dataMapper->setIo($this->io);
-
-            $this->io->section('Fetching data from database...');
-        }
+        $this->io = $io;
+        $this->notifyFetchData();
 
         $data = $this->fetchData(
             $connection,
             $this->createQuery($batch->getQuery(), $timestamps->getTimestampList()->values())
         );
 
-        if ($this->io) {
-            $this->io->success(sprintf('%d rows fetched.', $data->count()));
-        }
+        $this->notifyFetchedData($data);
 
         return $this->dataMapper->mapRows($data, $batch->getColumnsMapping());
     }
@@ -71,15 +67,39 @@ class DatabaseModel
         );
     }
 
+    private function notifyFetchData()
+    {
+        with($this->io, function (SymfonyStyle $io) {
+            $this->dataMapper->setIo($io);
+
+            $io->section('Fetching data from database...');
+        });
+    }
+
+    private function notifyFetchedData(IList $data)
+    {
+        with($this->io, function (SymfonyStyle $io) use ($data) {
+            $io->success(sprintf('%d rows fetched.', $data->count()));
+        });
+    }
+
     private function fetchData(\PDO $database, string $query): IList
     {
-        if ($this->io) {
-            $this->io->note($query);
-        }
+        $this->notifyQuery($query);
 
         $query = $database->query($query);
         $query->execute();
 
         return ListCollection::ofT('array', $query->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * @param string $query
+     */
+    private function notifyQuery(string $query)
+    {
+        with($this->io, function (SymfonyStyle $io) use ($query) {
+            $io->note($query);
+        });
     }
 }

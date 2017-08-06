@@ -64,7 +64,11 @@ class DatabaseModelTest extends AbstractTestCase
             $this->prepareDatabase($connection);
 
             foreach ($this->config->getFeeding()->getBatchMap() as $batch) {
-                $data = $this->model->getData($connection, $this->config->getTimestamps(), $batch);
+                $data = $this->model->getData(
+                    $connection,
+                    $this->config->getTimestamps(),
+                    $batch
+                );
 
                 $this->assertEquals($expectedData[$batch->getType()], $data->toArray());
             }

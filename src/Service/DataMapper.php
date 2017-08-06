@@ -5,6 +5,7 @@ namespace VysokeSkoly\SolrFeeder\Service;
 use MF\Collection\Immutable\Generic\IList;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
+use function Functional\with;
 
 class DataMapper
 {
@@ -21,9 +22,8 @@ class DataMapper
     public function mapRows(IList $rows, IList $columnMappings): IList
     {
         $isMapping = !$columnMappings->isEmpty();
-        if ($this->io && $isMapping) {
-            $this->io->section('Mapping rows...');
-            $this->io->progressStart($rows->count());
+        if ($isMapping) {
+            $this->notifyRowsMapping($rows);
         }
 
         $rows = !$isMapping
@@ -57,16 +57,13 @@ class DataMapper
 
                 unset($mappedRow['_ignored']);
 
-                if ($this->io) {
-                    $this->io->progressAdvance();
-                }
+                $this->notifyProgress();
 
                 return $mappedRow;
             });
 
-        if ($this->io && $isMapping) {
-            $this->io->progressFinish();
-            $this->io->success(sprintf('%d rows mapped.', $rows->count()));
+        if ($isMapping) {
+            $this->notifyRowsMapped($rows);
         }
 
         return $rows;
@@ -77,5 +74,34 @@ class DataMapper
         return empty($value)
             ? []
             : explode($separator ?? self::DEFAULT_SEPARATOR, $value);
+    }
+
+    /**
+     * @param IList $rows
+     */
+    private function notifyRowsMapping(IList $rows)
+    {
+        with($this->io, function (SymfonyStyle $io) use ($rows) {
+            $io->section('Mapping rows...');
+            $io->progressStart($rows->count());
+        });
+    }
+
+    private function notifyProgress()
+    {
+        with($this->io, function (SymfonyStyle $io) {
+            $io->progressAdvance();
+        });
+    }
+
+    /**
+     * @param IList $rows
+     */
+    private function notifyRowsMapped(IList $rows)
+    {
+        with($this->io, function (SymfonyStyle $io) use ($rows) {
+            $io->progressFinish();
+            $io->success(sprintf('%d rows mapped.', $rows->count()));
+        });
     }
 }

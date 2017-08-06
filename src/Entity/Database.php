@@ -44,15 +44,15 @@ class Database
      */
     private function parseDsn(string $connection): string
     {
-        $driver = $this->driver;
-        $splitDriverAndRest = Curry::explode()('//');
-        $splitHostAndDbName = Curry::explode()('/');
-        $splitHostAndPort = Curry::explode()(':');
+        $splitBy = Curry::explode();
+        $splitDriverAndRest = $splitBy('//');
+        $splitHostAndDbName = $splitBy('/');
+        $splitHostAndPort = $splitBy(':');
 
         list($hostPort, $dbName) = compose($splitDriverAndRest, f::LAST, $splitHostAndDbName)($connection);
         list($host, $port) = $splitHostAndPort($hostPort);
 
-        return sprintf(self::DSN_TEMPLATE, $driver, $host, $port, $dbName);
+        return sprintf(self::DSN_TEMPLATE, $this->driver, $host, $port, $dbName);
     }
 
     public function getDriver(): string

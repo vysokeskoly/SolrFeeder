@@ -56,3 +56,10 @@ vendor/bin/solr-feeder-console solr-feeder:feed [configPath]
 
 ### Xml Configuration
 _TODO_
+
+
+## Todo
+
+* read/write timestamps
+* write logs
+* finish documentation
