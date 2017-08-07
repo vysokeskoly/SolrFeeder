@@ -7,188 +7,156 @@ use MF\Collection\Generic\IList;
 use MF\Collection\Mutable\Generic\ListCollection;
 use Solarium\Client;
 use Solarium\QueryType\Update\Query\Document\DocumentInterface;
-use Solarium\QueryType\Update\Result;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Solarium\QueryType\Update\Query\Query;
 use VysokeSkoly\SolrFeeder\Entity\FeedingBatch;
-use function Functional\with;
+use VysokeSkoly\SolrFeeder\Entity\Timestamp;
+use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 
 class SolrFeeder
 {
-    /** @var SymfonyStyle|null */
-    private $io;
+    /** @var Notifier */
+    private $notifier;
+
+    /** @var TimestampUpdater */
+    private $timestampUpdater;
+
+    public function __construct(Notifier $notifier, TimestampUpdater $timestampUpdater)
+    {
+        $this->notifier = $notifier;
+        $this->timestampUpdater = $timestampUpdater;
+    }
 
     public function feedSolr(
         Client $solr,
         FeedingBatch $batch,
         IList $data,
         int $batchSize,
-        SymfonyStyle $io = null
+        Timestamps $timestamps
     ): void {
-        $this->io = $io;
-        $this->notifyFeeding();
+        $this->notifier->notifyFeeding();
 
-        Assertion::inArray($batch->getType(), FeedingBatch::TYPES);
+        $type = $batch->getType();
+        Assertion::inArray($type, FeedingBatch::TYPES);
 
-        switch ($batch->getType()) {
+        switch ($type) {
             case FeedingBatch::TYPE_ADD:
-                $this->add($solr, $batch->getIdColumn(), $data, $batchSize);
+                $this->add($solr, $batch->getIdColumn(), $data, $batchSize, $timestamps);
                 break;
 
             case FeedingBatch::TYPE_DELETE:
-                $this->delete($solr, $batch->getIdColumn(), $data, $batchSize);
+                $this->delete($solr, $batch->getIdColumn(), $data, $batchSize, $timestamps);
                 break;
         }
 
-        throw new \Exception(
-            sprintf('Method %s for type "%s" is not implemented yet.', __METHOD__, $batch->getType())
-        );
+        $timestamps->saveValuesToFile();
     }
 
-    private function notifyFeeding()
-    {
-        with($this->io, function (SymfonyStyle $io) {
-            $io->title('Solr feeding...');
-        });
-    }
+    private function add(
+        Client $solr,
+        string $primaryKeyColumn,
+        IList $data,
+        int $batchSize,
+        Timestamps $timestamps
+    ): void {
+        $this->notifier->notifyPreparingAndSendingToSolr('add', $data);
 
-    private function add(Client $solr, string $primaryKeyColumn, IList $data, int $batchSize): void
-    {
-        $this->notifyPrepare('add', $data);
         $update = $solr->createUpdate();
-
-        $batches = new ListCollection(IList::class);
         $batch = new ListCollection(DocumentInterface::class);
+        $primaryKeyValue = null;
 
-        $data
-            ->map(
-                function (array $row) use ($update, $primaryKeyColumn) {
-                    Assertion::keyExists($row, $primaryKeyColumn);
-                    $document = $update->createDocument();
+        $data->each(function (array $row) use (
+            $solr,
+            $timestamps,
+            &$update,
+            $primaryKeyColumn,
+            &$batch,
+            $batchSize,
+            &$primaryKeyValue
+        ) {
+            Assertion::keyExists($row, $primaryKeyColumn);
+            $primaryKeyValue = $row[$primaryKeyColumn];
+            $document = $update->createDocument();
 
-                    foreach ($row as $column => $value) {
-                        $document->{$column} = $value;
-                    }
-
-                    return $document;
-                },
-                DocumentInterface::class
-            )
-            ->each(function (DocumentInterface $document) use ($batches, &$batch, $batchSize) {
-                $batch->add($document);
-
-                if ($batch->count() >= $batchSize) {
-                    $batches->add($batch);
-                    $batch = new ListCollection(DocumentInterface::class);
-                }
-                $this->notifyProgress();
-            });
-        $batches->add($batch);
-
-        $this->notifyPreparedAndSending($batches);
-        $batches->each(function (IList $batch) use ($solr, $update) {
-            $update->addDocuments($batch->toArray());
-
-            $update->addCommit();
-            $result = $solr->update($update);
-
-            $this->notifyProgress();
-            $this->notifyUpdate($result);
-        });
-
-        $this->notifyUpdateDone();
-    }
-
-    private function delete(Client $solr, string $primaryKeyColumn, IList $data, int $batchSize)
-    {
-        $this->notifyPrepare('delete', $data);
-        $update = $solr->createUpdate();
-
-        $batches = new ListCollection(IList::class);
-        $batch = new ListCollection('int');
-
-        $data
-            ->map(
-                function (array $row) use ($primaryKeyColumn) {
-                    Assertion::keyExists($row, $primaryKeyColumn);
-
-                    return (int) $row[$primaryKeyColumn];
-                },
-                'int'
-            )
-            ->each(function (int $id) use ($batches, &$batch, $batchSize) {
-                $batch->add($id);
-
-                if ($batch->count() >= $batchSize) {
-                    $batches->add($batch);
-                    $batch = new ListCollection('int');
-                }
-                $this->notifyProgress();
-            });
-        $batches->add($batch);
-
-        $this->notifyPreparedAndSending($batches);
-        $batches->each(function (IList $batch) use ($solr, $update) {
-            $update->addDeleteByIds($batch->toArray());
-
-            $update->addCommit();
-            $result = $solr->update($update);
-
-            $this->notifyProgress();
-            $this->notifyUpdate($result);
-        });
-
-        $this->notifyUpdateDone();
-    }
-
-    private function notifyPrepare(string $type, IList $data)
-    {
-        with($this->io, function (SymfonyStyle $io) use ($type, $data) {
-            $io->section(sprintf('Prepare update batch <%s> for solr', $type));
-
-            $io->writeln('Preparing documents for solr...');
-            $io->progressStart($data->count());
-        });
-    }
-
-    private function notifyProgress()
-    {
-        with($this->io, function (SymfonyStyle $io) {
-            $io->progressAdvance();
-        });
-    }
-
-    private function notifyPreparedAndSending(IList $batches)
-    {
-        with($this->io, function (SymfonyStyle $io) use ($batches) {
-            $io->progressFinish();
-            $io->writeln('Documents prepared.');
-
-            $count = $batches->count();
-            $io->section(sprintf('Sending %d batches to solr...', $count));
-            $io->progressStart($count);
-        });
-    }
-
-    private function notifyUpdate(Result $result)
-    {
-        with($this->io, function (SymfonyStyle $io) use ($result) {
-            if ($io->isVerbose()) {
-                $io->writeln(
-                    sprintf(
-                        'Update query executed with status "%s". [in %s s]',
-                        $result->getStatus(),
-                        $result->getQueryTime()
-                    )
-                );
+            foreach ($row as $column => $value) {
+                $document->{$column} = $value;
             }
+
+            $batch->add($document);
+
+            if ($batch->count() >= $batchSize) {
+                $update->addDocuments($batch->toArray());
+                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKeyValue);
+
+                $update = $solr->createUpdate();
+                $batch = new ListCollection(DocumentInterface::class);
+            }
+
+            $this->notifier->notifyProgress();
         });
+
+        $update->addDocuments($batch->toArray());
+        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKeyValue);
+
+        $this->notifier->notifyUpdateDone();
     }
 
-    private function notifyUpdateDone()
-    {
-        with($this->io, function (SymfonyStyle $io) {
-            $io->progressFinish();
-            $io->success('Sending batches is done.');
+    private function sendAddToSolr(
+        Client $solr,
+        Timestamps $timestamps,
+        Query $update,
+        string $type,
+        ?string $primaryKeyValue
+    ) {
+        if (empty($primaryKeyValue)) {
+            return;
+        }
+
+        $update->addCommit();
+        $result = $solr->update($update);
+
+        $this->timestampUpdater->updateCurrentTimestamps($timestamps, $type, $primaryKeyValue);
+        $this->notifier->notifyUpdate($result);
+    }
+
+    private function delete(
+        Client $solr,
+        string $primaryKeyColumn,
+        IList $data,
+        int $batchSize,
+        Timestamps $timestamps
+    ): void {
+        $this->notifier->notifyPreparingAndSendingToSolr('delete', $data);
+
+        $update = $solr->createUpdate();
+        $batch = new ListCollection('int');
+        $primaryKeyValue = null;
+
+        $data->each(function (array $row) use (
+            $batchSize,
+            $solr,
+            $timestamps,
+            &$update,
+            &$batch,
+            $primaryKeyColumn,
+            &$primaryKeyValue
+        ) {
+            Assertion::keyExists($row, $primaryKeyColumn);
+            $primaryKeyValue = $row[$primaryKeyColumn];
+
+            $batch->add((int) $primaryKeyValue);
+
+            if ($batch->count() >= $batchSize) {
+                $update->addDeleteByIds($batch->toArray());
+                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKeyValue);
+
+                $batch = new ListCollection('int');
+            }
+            $this->notifier->notifyProgress();
         });
+
+        $update->addDeleteByIds($batch->toArray());
+        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKeyValue);
+
+        $this->notifier->notifyUpdateDone();
     }
 }

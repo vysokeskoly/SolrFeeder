@@ -2,11 +2,22 @@
 
 namespace VysokeSkoly\SolrFeeder\Entity;
 
+use Assert\Assertion;
 use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\ListCollection;
 
 class Timestamp
 {
+    const TYPE_UPDATED = 'updated';
+    const TYPE_DELETED = 'deleted';
+    const TYPE_TIMESTAMP = 'timestamp';
+
+    const TYPES = [
+        self::TYPE_UPDATED,
+        self::TYPE_DELETED,
+        self::TYPE_TIMESTAMP,
+    ];
+
     /** @var string */
     private $type;
 
@@ -22,6 +33,15 @@ class Timestamp
     /** @var string */
     private $default;
 
+    /** @var string */
+    private $lastValue;
+
+    /** @var string */
+    private $currentValue;
+
+    /** @var string */
+    private $updated;
+
     public function __construct(
         string $type,
         string $column,
@@ -29,11 +49,28 @@ class Timestamp
         string $currValuePlaceholder,
         string $default
     ) {
+        Assertion::inArray($type, self::TYPES);
+
         $this->type = $type;
         $this->column = $column;
         $this->lastValuePlaceholder = $lastValuePlaceholder;
         $this->currValuePlaceholder = $currValuePlaceholder;
         $this->default = $default;
+    }
+
+    public function setLastValue(string $lastValue)
+    {
+        $this->lastValue = $lastValue;
+    }
+
+    public function isGreaterThanCurrentValue(string $value)
+    {
+        return $value > $this->currentValue;
+    }
+
+    public function setCurrentValue(string $currentValue)
+    {
+        $this->currentValue = $currentValue;
     }
 
     public function getType(): string
@@ -66,13 +103,24 @@ class Timestamp
 
     public function getValue(string $placeholder): string
     {
-        // todo - parse value from file and if there is none, return default
+        switch ($placeholder) {
+            case $this->getLastValuePlaceholder():
+                return $this->lastValue ?? $this->default;
 
-        return $this->getDefault();
+            case $this->getCurrValuePlaceholder():
+                return $this->currentValue ?? $this->default;
+        }
+
+        return $this->default;
     }
 
-    private function getDefault(): string
+    public function update(string $value)
     {
-        return $this->default;
+        $this->updated = $value;
+    }
+
+    public function getCurrentUpdated(): string
+    {
+        return $this->updated ?? $this->default;
     }
 }

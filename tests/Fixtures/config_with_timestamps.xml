@@ -4,14 +4,14 @@
   <statusReportFile>var/status/status-report-vysokeskoly.txt</statusReportFile>
   <log4jConfig>etc/log4j-vysokeskoly.properties</log4jConfig>
   <db>
-    <driver>org.mysql.Driver</driver>
-    <connection>jdbc:mysql://localhost:3306/test</connection>
-    <user>root</user>
-    <password></password>
+    <driver>org.postgresql.Driver</driver>
+    <connection>jdbc:postgresql://dbvysokeskoly:5432/vysokeskoly</connection>
+    <user>vysokeskoly</user>
+    <password>vysokeskoly</password>
 
     <credentialsFile>etc/db-credentials-vysokeskoly.xml</credentialsFile>
 
-    <timestamps file="var/timestamp/last-timestamps.xml" >
+    <timestamps file="tests/Fixtures/timestamps.xml" >
         <timestamp type="datetime" name="timestamp" column="ts" lastValuePlaceholder="%%LAST_TIMESTAMP%%" currValuePlaceholder="%%CURRENT_TIMESTAMP%%" default="1970-01-01 00:00:00"/>
         <timestamp type="datetime" name="updated" column="updated" lastValuePlaceholder="%%LAST_UPDATED%%" currValuePlaceholder="%%CURRENT_UPDATED%%" default="1970-01-01 00:00:00"/>
         <timestamp type="datetime" name="deleted" column="deleted" lastValuePlaceholder="%%LAST_DELETED%%" currValuePlaceholder="%%CURRENT_DELETED%%" default="1970-01-01 00:00:00"/>
@@ -22,10 +22,9 @@
         <idColumn>study_id</idColumn>
         <mainSelect><![CDATA[
           SELECT *
-          FROM study
+          FROM studies_solr
           WHERE updated >= %%LAST_UPDATED%%
-          ORDER BY updated ASC
-          LIMIT 10000
+          ORDER BY updated ASC 
             ]]>
         </mainSelect>
         <columnMap>
@@ -39,7 +38,7 @@
       <feedingBatch name="delete" type="delete">
         <idColumn>study_id</idColumn>
         <mainSelect><![CDATA[
-          SELECT study_id, deleted FROM study WHERE deleted >= %%LAST_DELETED%%
+          SELECT study_id, deleted FROM studies_solr WHERE deleted >= %%LAST_DELETED%%
          ]]></mainSelect>
 
 

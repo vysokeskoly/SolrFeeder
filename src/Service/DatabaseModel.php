@@ -2,15 +2,12 @@
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
-use Assert\Assertion;
 use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\ListCollection;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use VysokeSkoly\SolrFeeder\Entity\FeedingBatch;
 use VysokeSkoly\SolrFeeder\Entity\Timestamp;
 use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 use VysokeSkoly\SolrFeeder\Utils\StringHelper;
-use function Functional\with;
 
 class DatabaseModel
 {
@@ -20,30 +17,27 @@ class DatabaseModel
     /** @var StringHelper */
     private $stringHelper;
 
-    /** @var SymfonyStyle|null */
-    private $io;
+    /** @var Notifier */
+    private $notifier;
 
-    public function __construct(DataMapper $dataMapper, StringHelper $stringHelper)
+    public function __construct(DataMapper $dataMapper, StringHelper $stringHelper, Notifier $notifier)
     {
         $this->dataMapper = $dataMapper;
         $this->stringHelper = $stringHelper;
+        $this->notifier = $notifier;
     }
 
-    public function getData(
-        \PDO $connection,
-        Timestamps $timestamps,
-        FeedingBatch $batch,
-        SymfonyStyle $io = null
-    ): IList {
-        $this->io = $io;
-        $this->notifyFetchData();
+    public function getData(\PDO $connection, Timestamps $timestamps, FeedingBatch $batch): IList
+    {
+        $this->notifier->notifyFetchData();
 
         $data = $this->fetchData(
             $connection,
-            $this->createQuery($batch->getQuery(), $timestamps->getTimestampList()->values())
+            $this->createQuery($batch->getQuery(), $timestamps->getTimestampMap()->values())
         );
 
-        $this->notifyFetchedData($data);
+        $this->notifier->notifyFetchedData($data);
+        $this->storeCurrentTimestamps($data, $timestamps, $batch->getIdColumn());
 
         return $this->dataMapper->mapRows($data, $batch->getColumnsMapping());
     }
@@ -67,25 +61,9 @@ class DatabaseModel
         );
     }
 
-    private function notifyFetchData()
-    {
-        with($this->io, function (SymfonyStyle $io) {
-            $this->dataMapper->setIo($io);
-
-            $io->section('Fetching data from database...');
-        });
-    }
-
-    private function notifyFetchedData(IList $data)
-    {
-        with($this->io, function (SymfonyStyle $io) use ($data) {
-            $io->success(sprintf('%d rows fetched.', $data->count()));
-        });
-    }
-
     private function fetchData(\PDO $database, string $query): IList
     {
-        $this->notifyQuery($query);
+        $this->notifier->notifyNote($query);
 
         $query = $database->query($query);
         $query->execute();
@@ -93,13 +71,29 @@ class DatabaseModel
         return ListCollection::ofT('array', $query->fetchAll(\PDO::FETCH_ASSOC));
     }
 
-    /**
-     * @param string $query
-     */
-    private function notifyQuery(string $query)
+    private function storeCurrentTimestamps(IList $data, Timestamps $timestamps, string $primaryKeyId): void
     {
-        with($this->io, function (SymfonyStyle $io) use ($query) {
-            $io->note($query);
+        $this->notifier->notifyStoreCurrentTimestamps($data);
+
+        $data->each(function (array $row) use ($primaryKeyId, $timestamps) {
+            $timestamps->getTimestampMap()->each(
+                function (Timestamp $timestamp) use ($primaryKeyId, $row, $timestamps) {
+                    $column = $timestamp->getColumn();
+                    $currentTimestamp = $row[$column] ?? null;
+
+                    if ($currentTimestamp) {
+                        $timestamps->setCurrent($row[$primaryKeyId], $currentTimestamp);
+
+                        if ($timestamp->isGreaterThanCurrentValue($currentTimestamp)) {
+                            $timestamp->setCurrentValue($currentTimestamp);
+                        }
+                    }
+                }
+            );
+
+            $this->notifier->notifyProgress();
         });
+
+        $this->notifier->notifyCurrentTimestampsStored();
     }
 }

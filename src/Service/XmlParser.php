@@ -3,6 +3,7 @@
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use Assert\Assertion;
+use MF\Collection\Immutable\Generic\IMap;
 use MF\Collection\Immutable\Generic\ListCollection;
 use MF\Collection\Immutable\Generic\Map;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
@@ -20,11 +21,7 @@ class XmlParser
 
     public function parseConfig(string $configPath): Config
     {
-        Assertion::file($configPath);
-
-        $xmlContent = file_get_contents($configPath);
-        $xml = simplexml_load_string($xmlContent, null, LIBXML_NOCDATA);
-        $dataArray = json_decode(json_encode($xml), true);
+        $dataArray = $this->loadXmlAsArray($configPath);
 
         return new Config(
             $this->parseLockFile($dataArray),
@@ -34,6 +31,21 @@ class XmlParser
             $this->parseFeeding($dataArray),
             $this->parseSolr($dataArray)
         );
+    }
+
+    private function loadXmlAsArray(string $configPath): array
+    {
+        $xml = $this->loadXml($configPath);
+
+        return json_decode(json_encode($xml), true);
+    }
+
+    private function loadXml(string $configPath): \SimpleXMLElement
+    {
+        Assertion::file($configPath);
+        $xmlContent = file_get_contents($configPath);
+
+        return simplexml_load_string($xmlContent, null, LIBXML_NOCDATA);
     }
 
     private function parseLockFile(array $dataArray): string
@@ -79,13 +91,15 @@ class XmlParser
                 'default' => $default
                 ) = $timestamp[self::ATTR];
 
+            Assertion::same('datetime', $type, 'Only available type is "datetime" now.');
+
             $timestampMap = $timestampMap->set(
                 $name,
-                new Timestamp($type, $column, $lastValuePlaceholder, $currentValuePlaceholder, $default)
+                new Timestamp($name, $column, $lastValuePlaceholder, $currentValuePlaceholder, $default)
             );
         }
 
-        return new Timestamps($attributes['file'], $timestampMap);
+        return new Timestamps($attributes['file'], $timestampMap, $this);
     }
 
     private function parseFeeding(array $dataArray): Feeding
@@ -137,5 +151,17 @@ class XmlParser
             ) = $dataArray['feeder']['solr'];
 
         return new Solr($url, $connectionType, $readTimeout, $batchSize);
+    }
+
+    public function parseTimestampsFile(string $path): IMap
+    {
+        $timestamps = new Map('string', 'string');
+
+        $xml = $this->loadXml($path);
+        foreach ($xml->timestamp as $timestamp) {
+            $timestamps = $timestamps->set($timestamp->attributes()['name']->__toString(), $timestamp->__toString());
+        }
+
+        return $timestamps;
     }
 }

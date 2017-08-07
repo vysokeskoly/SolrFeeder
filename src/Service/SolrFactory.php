@@ -3,23 +3,22 @@
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use Solarium\Client;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use VysokeSkoly\SolrFeeder\Entity\Solr;
-use function Functional\with;
 
 class SolrFactory
 {
-    public function createConnection(Solr $solrConfig, SymfonyStyle $io = null): Client
-    {
-        $this->notifySolariumVersion($io);
+    /** @var Notifier */
+    private $notifier;
 
-        return new Client($solrConfig->toClientConfig());
+    public function __construct(Notifier $notifier)
+    {
+        $this->notifier = $notifier;
     }
 
-    private function notifySolariumVersion(?SymfonyStyle $io)
+    public function createConnection(Solr $solrConfig): Client
     {
-        with($io, function (SymfonyStyle $io) {
-            $io->note('Solarium version: ' . Client::VERSION);
-        });
+        $this->notifier->notifyNote('Solarium version ' . Client::VERSION);
+
+        return new Client($solrConfig->toClientConfig());
     }
 }

@@ -5,6 +5,7 @@ namespace VysokeSkoly\SolrFeeder\Tests\Service;
 use MF\Collection\Immutable\Generic\ListCollection;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
 use VysokeSkoly\SolrFeeder\Service\DataMapper;
+use VysokeSkoly\SolrFeeder\Service\Notifier;
 use VysokeSkoly\SolrFeeder\Tests\AbstractTestCase;
 
 class DataMapperTest extends AbstractTestCase
@@ -14,7 +15,7 @@ class DataMapperTest extends AbstractTestCase
 
     public function setUp()
     {
-        $this->dataMapper = new DataMapper();
+        $this->dataMapper = new DataMapper(new Notifier());
     }
 
     public function testShouldMapRowsByColumnsMapping()

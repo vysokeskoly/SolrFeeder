@@ -6,18 +6,21 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use VysokeSkoly\SolrFeeder\Facade\FeedFacade;
+use VysokeSkoly\SolrFeeder\Service\Notifier;
 
 class FeedCommand extends AbstractCommand
 {
     /** @var FeedFacade */
     private $feedFacade;
 
-    /**
-     * @param FeedFacade $feedFacade
-     */
-    public function __construct(FeedFacade $feedFacade)
+    /** @var Notifier */
+    private $notifier;
+
+    public function __construct(FeedFacade $feedFacade, Notifier $notifier)
     {
         $this->feedFacade = $feedFacade;
+        $this->notifier = $notifier;
+
         parent::__construct('feed');
     }
 
@@ -31,8 +34,10 @@ class FeedCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
+            $this->notifier->setIo($this->io);
+
             $configPath = $input->getArgument('config');
-            $this->feedFacade->feedDataToSolr($configPath, $this->io);
+            $this->feedFacade->feedDataToSolr($configPath);
 
             $this->io->success('Done');
 

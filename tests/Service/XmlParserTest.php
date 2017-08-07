@@ -42,30 +42,31 @@ class XmlParserTest extends TestCase
                 'vysokeskoly'
             ),
             new Timestamps(
-                'var/timestamp/last-timestamps-vysokeskoly.xml',
+                'var/timestamp/last-timestamps.xml',
                 Map::ofKT('string', Timestamp::class, [
                     'timestamp' => new Timestamp(
-                        'datetime',
+                        'timestamp',
                         'ts',
                         '%%LAST_TIMESTAMP%%',
                         '%%CURRENT_TIMESTAMP%%',
                         '1970-01-01 00:00:00'
                     ),
                     'updated' => new Timestamp(
-                        'datetime',
+                        'updated',
                         'updated',
                         '%%LAST_UPDATED%%',
                         '%%CURRENT_UPDATED%%',
                         '1970-01-01 00:00:00'
                     ),
                     'deleted' => new Timestamp(
-                        'datetime',
+                        'deleted',
                         'deleted',
                         '%%LAST_DELETED%%',
                         '%%CURRENT_DELETED%%',
                         '1970-01-01 00:00:00'
                     ),
-                ])
+                ]),
+                $this->xmlParser
             ),
             new Feeding(Map::ofKT('string', FeedingBatch::class, [
                 'add' => new FeedingBatch(
@@ -96,5 +97,20 @@ class XmlParserTest extends TestCase
         $config = $this->xmlParser->parseConfig($configPath);
 
         $this->assertEquals($expectedConfig, $config);
+    }
+
+    public function testShouldParseTimestamps()
+    {
+        $path = __DIR__ . '/../Fixtures/timestamps.xml';
+
+        $expectedTimestamps = Map::ofKT('string', 'string', [
+            'deleted' => '2017-07-13 09:08:59.78',
+            'updated' => '2017-08-07 04:11:27.855',
+            'timestamp' => '1970-01-01 00:00:00.0',
+        ]);
+
+        $timestamps = $this->xmlParser->parseTimestampsFile($path);
+
+        $this->assertEquals($expectedTimestamps->toArray(), $timestamps->toArray());
     }
 }

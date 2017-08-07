@@ -2,7 +2,6 @@
 
 namespace VysokeSkoly\SolrFeeder\Facade;
 
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\LockHandler;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
@@ -41,7 +40,7 @@ class FeedFacade
         $this->feeder = $feeder;
     }
 
-    public function feedDataToSolr(string $configPath, SymfonyStyle $io): void
+    public function feedDataToSolr(string $configPath): void
     {
         $config = $this->xmlParser->parseConfig($configPath);
 
@@ -50,13 +49,13 @@ class FeedFacade
 
         $database = $this->databaseFactory->createConnection($config->getDatabase());
         $solrConfig = $config->getSolr();
-        $solr = $this->solrFactory->createConnection($solrConfig, $io);
+        $solr = $this->solrFactory->createConnection($solrConfig);
 
         $timestamps = $config->getTimestamps();
         $batchSize = $solrConfig->getBatchSize();
         foreach ($config->getFeeding()->getBatchMap() as $batch) {
-            $data = $this->model->getData($database, $timestamps, $batch, $io);
-            $this->feeder->feedSolr($solr, $batch, $data, $batchSize, $io);
+            $data = $this->model->getData($database, $timestamps, $batch);
+            $this->feeder->feedSolr($solr, $batch, $data, $batchSize, $timestamps);
         }
 
         $lock->release();

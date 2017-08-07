@@ -9,8 +9,10 @@ use VysokeSkoly\SolrFeeder\Facade\FeedFacade;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
 use VysokeSkoly\SolrFeeder\Service\DataMapper;
+use VysokeSkoly\SolrFeeder\Service\Notifier;
 use VysokeSkoly\SolrFeeder\Service\SolrFactory;
 use VysokeSkoly\SolrFeeder\Service\SolrFeeder;
+use VysokeSkoly\SolrFeeder\Service\TimestampUpdater;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
 use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 
@@ -36,18 +38,20 @@ if (!requireIfExists(__DIR__ . '/../vendor/autoload.php') // when used directly
 date_default_timezone_set('Europe/Prague');
 
 // services definition
+$notifier = new Notifier();
+
 $feedFacade = new FeedFacade(
     new XmlParser(),
     new DatabaseFactory(),
-    new DatabaseModel(new DataMapper(), new StringHelper()),
-    new SolrFactory(),
-    new SolrFeeder()
+    new DatabaseModel(new DataMapper($notifier), new StringHelper(), $notifier),
+    new SolrFactory($notifier),
+    new SolrFeeder($notifier, new TimestampUpdater())
 );
 
 // app definition
 $application = new Application('solr-feeder-console', '1.0.0');
 $application->addCommands([
-    new FeedCommand($feedFacade),
+    new FeedCommand($feedFacade, $notifier),
 ]);
 $application->run();
 
