@@ -9,6 +9,7 @@ use VysokeSkoly\SolrFeeder\Facade\FeedFacade;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
 use VysokeSkoly\SolrFeeder\Service\DataMapper;
+use VysokeSkoly\SolrFeeder\Service\Log;
 use VysokeSkoly\SolrFeeder\Service\Notifier;
 use VysokeSkoly\SolrFeeder\Service\SolrFactory;
 use VysokeSkoly\SolrFeeder\Service\SolrFeeder;
@@ -45,7 +46,8 @@ $feedFacade = new FeedFacade(
     new DatabaseFactory(),
     new DatabaseModel(new DataMapper($notifier), new StringHelper(), $notifier),
     new SolrFactory($notifier),
-    new SolrFeeder($notifier, new TimestampUpdater())
+    new SolrFeeder($notifier, new TimestampUpdater()),
+    new Log()
 );
 
 // app definition
