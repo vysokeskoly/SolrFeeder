@@ -8,7 +8,10 @@ Data feeder for SOLR
 
 ## Installation
 ```bash
-git clone https://github.com/vysokeskoly/SolrFeeder.git
+$ git clone https://github.com/vysokeskoly/SolrFeeder.git
+  
+$ cd SolrFeeder    
+$ composer install --no-dev
 ```
 
 ## Requirements
@@ -18,12 +21,12 @@ git clone https://github.com/vysokeskoly/SolrFeeder.git
 
 ### Show list of available commands
 ```bash
-vendor/bin/solr-feeder-console list
+bin/solr-feeder-console list
 ```
 
 ### Usage:
 ```bash
-vendor/bin/solr-feeder-console [command] [arguments]
+bin/solr-feeder-console [command] [arguments]
 ```
 
 #### Available commands:
@@ -37,7 +40,7 @@ Feed data from `database` to `SOLR` by **xml configuration**
 
 #### Usage:
 ```bash
-vendor/bin/solr-feeder-console solr-feeder:feed [configPath]
+bin/solr-feeder-console solr-feeder:feed [configPath]
 ```
 
 #### Help:
@@ -60,6 +63,4 @@ _TODO_
 
 ## Todo
 
-* read/write timestamps
-* write logs
 * finish documentation
