@@ -7,8 +7,6 @@ use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
 
 class DataMapper
 {
-    const DEFAULT_SEPARATOR = ' ';
-
     /** @var Notifier */
     private $notifier;
 
@@ -69,8 +67,12 @@ class DataMapper
 
     private function mapRow(?string $value, ?string $separator)
     {
+        if (empty($separator)) {
+            return $value;
+        }
+
         return empty($value)
             ? []
-            : explode($separator ?? self::DEFAULT_SEPARATOR, $value);
+            : explode($separator, $value);
     }
 }

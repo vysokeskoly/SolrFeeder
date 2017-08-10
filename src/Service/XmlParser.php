@@ -109,13 +109,14 @@ class XmlParser
             ) = $dataArray['db']['feeding'];
 
         $batchMap = new Map('string', FeedingBatch::class);
-        foreach ($feedingBatch as $batch) {
+
+        foreach ($this->normalizeMultiNode($feedingBatch) as $batch) {
             list('name' => $name, 'type' => $type) = $batch[self::ATTR];
             list('idColumn' => $idColumn, 'mainSelect' => $query) = $batch;
 
             $mapping = empty($batch['columnMap']['map'])
                 ? null
-                : ListCollection::ofT('array', $batch['columnMap']['map'])
+                : ListCollection::ofT('array', $this->normalizeMultiNode($batch['columnMap']['map']))
                     ->map(
                         function (array $mapping): ColumnMapping {
                             $attr = $mapping[self::ATTR];
@@ -134,6 +135,13 @@ class XmlParser
         }
 
         return new Feeding($batchMap);
+    }
+
+    private function normalizeMultiNode($node)
+    {
+        return isset($node[self::ATTR])
+            ? [$node]
+            : $node;
     }
 
     private function parseSeparator(?string $separator): ?string
