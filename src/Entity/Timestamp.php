@@ -114,7 +114,7 @@ class Timestamp
         return $this->default;
     }
 
-    public function update(string $value)
+    public function update(?string $value)
     {
         $this->updated = $value;
     }

@@ -93,8 +93,10 @@ class Timestamps
         $this->current->set($primaryKey, $currentTimestamp);
     }
 
-    public function getCurrentTimestamp(string $primaryKeyValue): string
+    public function getCurrentTimestamp(string $primaryKeyValue): ?string
     {
-        return $this->current->get($primaryKeyValue);
+        return $this->current->containsKey($primaryKeyValue)
+            ? $this->current->get($primaryKeyValue)
+            : null;
     }
 }
