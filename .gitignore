@@ -2,4 +2,8 @@
 /code-coverage/
 
 bin/
-!/bin/docker-ip-console
+!/bin/solr-feeder-console
+
+.php_cs.cache
+
+var/

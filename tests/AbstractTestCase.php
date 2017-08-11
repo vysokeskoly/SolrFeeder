@@ -4,20 +4,28 @@ namespace VysokeSkoly\SolrFeeder\Tests;
 
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 abstract class AbstractTestCase extends TestCase
 {
-    protected function copyFile(string $path, string $source, string $target): string
+    /**
+     * @before
+     */
+    public function init()
     {
-        $hostsSourcePath = $path . $source;
-        $targetPath = $path . $target;
-
-        if (file_exists($targetPath)) {
-            unlink($targetPath);
+        $dir = __DIR__ . '/../var';
+        if (file_exists($dir)) {
+            (new Process('rm -rf ' . $dir))->run();
         }
-        copy($hostsSourcePath, $targetPath);
+    }
 
-        return $targetPath;
+    protected function databaseSafeTest(callable $test): void
+    {
+        try {
+            $test();
+        } catch (\PDOException $e) {
+            $this->markTestSkipped(sprintf('Database factory test skipped due: %s', $e->getMessage()));
+        }
     }
 
     public function tearDown()
