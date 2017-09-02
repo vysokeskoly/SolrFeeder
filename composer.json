@@ -30,7 +30,8 @@
         "beberlei/assert": "^2.6",
         "solarium/solarium": "^3.8",
         "mf/collections-php": "^2.0",
-        "lstrojny/functional-php": "^1.6"
+        "lstrojny/functional-php": "^1.6",
+        "vysokeskoly/deb-build": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0",
@@ -40,11 +41,18 @@
         "satooshi/php-coveralls": "^1.0",
         "mockery/mockery": "^0.9.9"
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://satis.vysokeskoly.cz/"
+        }
+    ],
     "bin": [
         "bin/solr-feeder-console"
     ],
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "secure-http": false
     },
     "extra": {
         "symfony-bin-dir": "bin",

@@ -17,6 +17,22 @@ $ composer install --no-dev
 ## Requirements
 - `php7.1`
 
+
+## Build deb package
+
+### Before 1st run only
+- make sure you are building deb on `Ubuntu`
+
+```bash
+./install-deb-dependencies.sh
+```
+
+### Build deb
+```bash
+./build-deb.sh
+```
+
+
 ## How to run it?
 
 ### Show list of available commands
