@@ -35,7 +35,8 @@
         "symfony/event-dispatcher": "^5.3",
         "symfony/filesystem": "^5.3",
         "symfony/process": "^5.3",
-        "symfony/yaml": "^5.3"
+        "symfony/yaml": "^5.3",
+        "vysokeskoly/deb-build": "^4.0"
     },
     "require-dev": {
         "ext-pdo": "*",
@@ -46,6 +47,12 @@
         "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/phpunit": "^9.5"
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://satis.vysokeskoly.cz/"
+        }
+    ],
     "bin": [
         "bin/solr-feeder-console"
     ],
@@ -69,9 +76,11 @@
             "@updateTools"
         ],
         "installTools": [
+            "cd tools/pre-build && composer install && composer link",
             "cd tools/coding-standards && composer install && composer link"
         ],
         "updateTools": [
+            "cd tools/pre-build && composer update && composer link",
             "cd tools/coding-standards && composer update && composer link"
         ],
         "all": [

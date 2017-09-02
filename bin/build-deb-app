@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -e
+
+if test -f "/vysokeskoly-in-docker"; then
+    composer install --optimize-autoloader --no-dev
+
+    echo "Add pre-build vars ..."
+    source <(php bin/pre-build-console pre-build:parse-variables)
+
+    echo "Build deb ..."
+    export BUILD_NUMBER=666
+    php robo.phar build:deb
+
+    echo "Done"
+else
+    docker-compose --file deployment/docker-compose.yaml run deployment bin/build-deb-app
+fi

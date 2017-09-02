@@ -1,0 +1,6 @@
+pre-build:
+    parse:
+        git:
+            commit: GIT_COMMIT
+            url:    GIT_URL
+            branch: GIT_BRANCH

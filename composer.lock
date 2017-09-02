@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6cbffe85b74caa6b0e1318d56565535d",
+    "content-hash": "ff28eb7f710b63f7a9ec90414e26bbd5",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -2354,6 +2354,74 @@
                 }
             ],
             "time": "2021-11-20T16:42:42+00:00"
+        },
+        {
+            "name": "vysokeskoly/deb-build",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:vysokeskoly/deb-build.git",
+                "reference": "2362bfff719b90f12f2a37217011db6a76087702"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vysokeskoly/deb-build/zipball/2362bfff719b90f12f2a37217011db6a76087702",
+                "reference": "2362bfff719b90f12f2a37217011db6a76087702",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "consolidation/robo": "^1.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^0.12.88"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "VysokeSkoly\\Build\\": "src/Build/"
+                }
+            },
+            "scripts": {
+                "post-install-cmd": [
+                    "@installTools"
+                ],
+                "post-update-cmd": [
+                    "@updateTools"
+                ],
+                "installTools": [
+                    "cd tools/coding-standards && composer install && composer link"
+                ],
+                "updateTools": [
+                    "cd tools/coding-standards && composer update && composer link"
+                ],
+                "all": [
+                    "@analyze"
+                ],
+                "analyze": [
+                    "@cs",
+                    "@phpstan"
+                ],
+                "cs": [
+                    "vendor/bin/ecs check --ansi -- src/ ecs.php"
+                ],
+                "phpstan": [
+                    "vendor/bin/phpstan analyze ./src -c phpstan.neon --ansi --level 7"
+                ],
+                "fix": [
+                    "vendor/bin/ecs check src/ ecs.php --ansi --fix"
+                ]
+            },
+            "description": "Utilities for building deb packages of PHP apps",
+            "support": {
+                "source": "https://github.com/vysokeskoly/deb-build/tree/4.0.0",
+                "issues": "https://github.com/vysokeskoly/deb-build/issues"
+            },
+            "time": "2021-06-19T17:34:00+00:00"
         }
     ],
     "packages-dev": [

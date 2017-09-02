@@ -1,0 +1,8 @@
+version: '3'
+services:
+    deployment:
+        image: dcreg.devel:5000/vysokeskoly-php-deployment:7.4
+        volumes:
+            - ./..:/srv/www/app
+            - /srv/www/app/var/cache    # ignore dir in the docker
+        working_dir: /srv/www/app

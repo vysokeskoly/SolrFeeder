@@ -1,0 +1,15 @@
+{
+    "name": "tools/pre-build",
+    "require": {
+        "mf/pre-build": "^2.0"
+    },
+    "authors": [
+        {
+            "name": "Petr Chromec",
+            "email": "mortal_flesh@seznam.cz"
+        }
+    ],
+    "scripts": {
+        "link": "cd ../../bin/ && ln -sf ../tools/pre-build/vendor/bin/pre-build-console pre-build-console"
+    }
+}
