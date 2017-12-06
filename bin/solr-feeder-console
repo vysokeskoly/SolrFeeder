@@ -38,6 +38,8 @@ if (!requireIfExists(__DIR__ . '/../vendor/autoload.php') // when used directly
 
 date_default_timezone_set('Europe/Prague');
 
+$composer = json_decode(file_get_contents(__DIR__ . '/../composer.json'));
+
 // services definition
 $notifier = new Notifier();
 
@@ -51,7 +53,7 @@ $feedFacade = new FeedFacade(
 );
 
 // app definition
-$application = new Application('solr-feeder-console', '1.0.0');
+$application = new Application('solr-feeder-console', $composer['version']);
 $application->addCommands([
     new FeedCommand($feedFacade, $notifier),
 ]);
