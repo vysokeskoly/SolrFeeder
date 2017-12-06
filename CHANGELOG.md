@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Added, Changed, Fixed, Removed) should be added as needed. -->
 ## Unreleased
+- Fix `composer.json` parsing in `bin/solr-feeder-console`
 
 ## 1.0.1 - 2017-12-06
 - Fix possibly unhandled `Runtime Exception` on `Advance` or `Finish` during not-started `Progress`

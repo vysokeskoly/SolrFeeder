@@ -38,7 +38,7 @@ if (!requireIfExists(__DIR__ . '/../vendor/autoload.php') // when used directly
 
 date_default_timezone_set('Europe/Prague');
 
-$composer = json_decode(file_get_contents(__DIR__ . '/../composer.json'));
+$composer = json_decode(file_get_contents(__DIR__ . '/../composer.json'), true);
 
 // services definition
 $notifier = new Notifier();
