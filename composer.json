@@ -2,7 +2,7 @@
     "name": "vysokeskoly/solr-feeder",
     "description": "Data feeder for SOLR",
     "type": "project",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": "MIT",
     "authors": [
         {
