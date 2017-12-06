@@ -28,9 +28,20 @@ class Notifier
     public function notifyRowsMapped(IList $rows)
     {
         with($this->io, function (SymfonyStyle $io) use ($rows) {
-            $io->progressFinish();
+            $this->finishProgress($io);
             $io->success(sprintf('%d rows mapped.', $rows->count()));
         });
+    }
+
+    private function finishProgress(SymfonyStyle $io): void
+    {
+        try {
+            $io->progressFinish();
+        } catch (\RuntimeException $e) {
+            if ($io->isDebug()) {
+                $io->writeln('progress should finish, but ' . $e->getMessage());
+            }
+        }
     }
 
     public function notifyFeeding()
@@ -51,7 +62,13 @@ class Notifier
     public function notifyProgress()
     {
         with($this->io, function (SymfonyStyle $io) {
-            $io->progressAdvance();
+            try {
+                $io->progressAdvance();
+            } catch (\RuntimeException $e) {
+                if ($io->isDebug()) {
+                    $io->writeln('progress should advance, but ' . $e->getMessage());
+                }
+            }
         });
     }
 
@@ -73,7 +90,7 @@ class Notifier
     public function notifyUpdateDone()
     {
         with($this->io, function (SymfonyStyle $io) {
-            $io->progressFinish();
+            $this->finishProgress($io);
             $io->success('Sending batches is done.');
         });
     }
@@ -110,7 +127,7 @@ class Notifier
     public function notifyCurrentTimestampsStored()
     {
         with($this->io, function (SymfonyStyle $io) {
-            $io->progressFinish();
+            $this->finishProgress($io);
             $io->success('Storing is done.');
         });
     }
