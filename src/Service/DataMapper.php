@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use MF\Collection\Immutable\Generic\IList;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
+use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
 class DataMapper
 {
@@ -30,7 +31,7 @@ class DataMapper
                 $columnMappings
                     ->map(function (ColumnMapping $mapping) use ($row, &$mappedRow) {
                         $mappedColumn = $mapping->getColumn();
-                        $value = $row[$mappedColumn];
+                        $value = (new RowValue($row, $mappedColumn))->getStringValue();
 
                         $mappedRow[$mapping->getDestination()] = $this->mapRow($value, $mapping->getSeparator());
 
@@ -46,10 +47,9 @@ class DataMapper
 
                         return true;
                     })
-                    ->each(function (ColumnMapping $mapping) use (&$mappedRow) {
+                    ->each(function (ColumnMapping $mapping) use (&$mappedRow): void {
                         unset($mappedRow[$mapping->getColumn()]);
                     });
-
 
                 unset($mappedRow['_ignored']);
 
@@ -65,6 +65,7 @@ class DataMapper
         return $rows;
     }
 
+    /** @return null|string|array */
     private function mapRow(?string $value, ?string $separator)
     {
         if (empty($separator)) {

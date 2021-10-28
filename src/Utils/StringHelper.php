@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Utils;
 
@@ -15,7 +15,7 @@ class StringHelper
         }
 
         return $caseSensitive
-            ? strpos($haystack, $needle) !== false
-            : stripos($haystack, $needle) !== false;
+            ? mb_strpos($haystack, $needle) !== false
+            : mb_stripos($haystack, $needle) !== false;
     }
 }

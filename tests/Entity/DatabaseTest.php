@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Tests\Entity;
 
@@ -7,7 +7,7 @@ use VysokeSkoly\SolrFeeder\Entity\Database;
 
 class DatabaseTest extends TestCase
 {
-    public function testShouldCreateCorrectPgsqlDsn()
+    public function testShouldCreateCorrectPgsqlDsn(): void
     {
         $database = new Database(
             'org.postgresql.Driver',
@@ -21,7 +21,7 @@ class DatabaseTest extends TestCase
         $this->assertSame($expectedDsn, $database->getDsn());
     }
 
-    public function testShouldCreateCorrectMysqlDsn()
+    public function testShouldCreateCorrectMysqlDsn(): void
     {
         $database = new Database(
             'org.mysql.Driver',

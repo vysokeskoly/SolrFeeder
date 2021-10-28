@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
@@ -6,11 +6,12 @@ use Assert\Assertion;
 use MF\Collection\Generic\IList;
 use MF\Collection\Mutable\Generic\ListCollection;
 use Solarium\Client;
-use Solarium\QueryType\Update\Query\Document\DocumentInterface;
+use Solarium\Core\Query\DocumentInterface;
 use Solarium\QueryType\Update\Query\Query;
 use VysokeSkoly\SolrFeeder\Entity\FeedingBatch;
 use VysokeSkoly\SolrFeeder\Entity\Timestamp;
 use VysokeSkoly\SolrFeeder\Entity\Timestamps;
+use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
 class SolrFeeder
 {
@@ -42,7 +43,6 @@ class SolrFeeder
             case FeedingBatch::TYPE_ADD:
                 $this->add($solr, $batch->getIdColumn(), $data, $batchSize, $timestamps);
                 break;
-
             case FeedingBatch::TYPE_DELETE:
                 $this->delete($solr, $batch->getIdColumn(), $data, $batchSize, $timestamps);
                 break;
@@ -62,7 +62,8 @@ class SolrFeeder
 
         $update = $solr->createUpdate();
         $batch = new ListCollection(DocumentInterface::class);
-        $primaryKeyValue = null;
+        /** @var PrimaryKey|null $primaryKey */
+        $primaryKey = null;
 
         $data->each(function (array $row) use (
             $solr,
@@ -71,10 +72,10 @@ class SolrFeeder
             $primaryKeyColumn,
             &$batch,
             $batchSize,
-            &$primaryKeyValue
-        ) {
+            &$primaryKey
+        ): void {
             Assertion::keyExists($row, $primaryKeyColumn);
-            $primaryKeyValue = $row[$primaryKeyColumn];
+            $primaryKey = new PrimaryKey($row, $primaryKeyColumn);
             $document = $update->createDocument();
 
             foreach ($row as $column => $value) {
@@ -85,7 +86,7 @@ class SolrFeeder
 
             if ($batch->count() >= $batchSize) {
                 $update->addDocuments($batch->toArray());
-                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKeyValue);
+                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKey);
 
                 $update = $solr->createUpdate();
                 $batch = new ListCollection(DocumentInterface::class);
@@ -95,7 +96,7 @@ class SolrFeeder
         });
 
         $update->addDocuments($batch->toArray());
-        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKeyValue);
+        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKey);
 
         $this->notifier->notifyUpdateDone();
     }
@@ -105,16 +106,16 @@ class SolrFeeder
         Timestamps $timestamps,
         Query $update,
         string $type,
-        ?string $primaryKeyValue
-    ) {
-        if (empty($primaryKeyValue)) {
+        ?PrimaryKey $primaryKey
+    ): void {
+        if ($primaryKey === null) {
             return;
         }
 
         $update->addCommit();
         $result = $solr->update($update);
 
-        $this->timestampUpdater->updateCurrentTimestamps($timestamps, $type, $primaryKeyValue);
+        $this->timestampUpdater->updateCurrentTimestamps($timestamps, $type, $primaryKey);
         $this->notifier->notifyUpdate($result);
     }
 
@@ -129,7 +130,8 @@ class SolrFeeder
 
         $update = $solr->createUpdate();
         $batch = new ListCollection('int');
-        $primaryKeyValue = null;
+        /** @var PrimaryKey|null $primaryKey */
+        $primaryKey = null;
 
         $data->each(function (array $row) use (
             $batchSize,
@@ -138,16 +140,15 @@ class SolrFeeder
             &$update,
             &$batch,
             $primaryKeyColumn,
-            &$primaryKeyValue
-        ) {
-            Assertion::keyExists($row, $primaryKeyColumn);
-            $primaryKeyValue = $row[$primaryKeyColumn];
+            &$primaryKey
+        ): void {
+            $primaryKey = new PrimaryKey($row, $primaryKeyColumn);
 
-            $batch->add((int) $primaryKeyValue);
+            $batch->add($primaryKey->getIntValue());
 
             if ($batch->count() >= $batchSize) {
                 $update->addDeleteByIds($batch->toArray());
-                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKeyValue);
+                $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKey);
 
                 $batch = new ListCollection('int');
             }
@@ -155,7 +156,7 @@ class SolrFeeder
         });
 
         $update->addDeleteByIds($batch->toArray());
-        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKeyValue);
+        $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKey);
 
         $this->notifier->notifyUpdateDone();
     }

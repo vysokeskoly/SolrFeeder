@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Tests\Entity;
 
@@ -9,11 +9,11 @@ use VysokeSkoly\SolrFeeder\Service\XmlParser;
 
 class TimestampsTest extends TestCase
 {
-    public function testShouldLoadDefaultTimestamps()
+    public function testShouldLoadDefaultTimestamps(): void
     {
         $configPath = __DIR__ . '/../Fixtures/config.xml';
 
-        $expectedTimestampList = Map::ofKT('string', Timestamp::class, [
+        $expectedTimestampList = Map::fromKT('string', Timestamp::class, [
             'timestamp' => new Timestamp(
                 'timestamp',
                 'ts',
@@ -43,7 +43,7 @@ class TimestampsTest extends TestCase
         $this->assertEquals($expectedTimestampList, $timestampList);
     }
 
-    public function testShouldLoadTimestampsFromFile()
+    public function testShouldLoadTimestampsFromFile(): void
     {
         $configPath = __DIR__ . '/../Fixtures/config_with_timestamps.xml';
 

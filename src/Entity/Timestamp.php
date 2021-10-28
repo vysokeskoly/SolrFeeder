@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Entity;
 
@@ -8,11 +8,11 @@ use MF\Collection\Immutable\Generic\ListCollection;
 
 class Timestamp
 {
-    const TYPE_UPDATED = 'updated';
-    const TYPE_DELETED = 'deleted';
-    const TYPE_TIMESTAMP = 'timestamp';
+    public const TYPE_UPDATED = 'updated';
+    public const TYPE_DELETED = 'deleted';
+    public const TYPE_TIMESTAMP = 'timestamp';
 
-    const TYPES = [
+    public const TYPES = [
         self::TYPE_UPDATED,
         self::TYPE_DELETED,
         self::TYPE_TIMESTAMP,
@@ -58,17 +58,17 @@ class Timestamp
         $this->default = $default;
     }
 
-    public function setLastValue(string $lastValue)
+    public function setLastValue(string $lastValue): void
     {
         $this->lastValue = $lastValue;
     }
 
-    public function isGreaterThanCurrentValue(string $value)
+    public function isGreaterThanCurrentValue(string $value): bool
     {
         return $value > $this->currentValue;
     }
 
-    public function setCurrentValue(string $currentValue)
+    public function setCurrentValue(string $currentValue): void
     {
         $this->currentValue = $currentValue;
     }
@@ -85,7 +85,7 @@ class Timestamp
 
     public function getPlaceholders(): IList
     {
-        return ListCollection::ofT(
+        return ListCollection::fromT(
             'string',
             [$this->getLastValuePlaceholder(), $this->getCurrValuePlaceholder()]
         );
@@ -106,7 +106,6 @@ class Timestamp
         switch ($placeholder) {
             case $this->getLastValuePlaceholder():
                 return $this->lastValue ?? $this->default;
-
             case $this->getCurrValuePlaceholder():
                 return $this->currentValue ?? $this->default;
         }
@@ -114,7 +113,7 @@ class Timestamp
         return $this->default;
     }
 
-    public function update(?string $value)
+    public function update(?string $value): void
     {
         $this->updated = $value;
     }

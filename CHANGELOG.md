@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Added, Changed, Fixed, Removed) should be added as needed. -->
 ## Unreleased
+- Update dependencies for php 7.3
 
 ## 1.0.2 - 2017-12-06
 - Fix `composer.json` parsing in `bin/solr-feeder-console`

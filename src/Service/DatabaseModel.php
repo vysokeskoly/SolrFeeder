@@ -1,13 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
+use Assert\Assertion;
 use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\ListCollection;
 use VysokeSkoly\SolrFeeder\Entity\FeedingBatch;
 use VysokeSkoly\SolrFeeder\Entity\Timestamp;
 use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 use VysokeSkoly\SolrFeeder\Utils\StringHelper;
+use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
+use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
 class DatabaseModel
 {
@@ -61,28 +64,31 @@ class DatabaseModel
         );
     }
 
-    private function fetchData(\PDO $database, string $query): IList
+    private function fetchData(\PDO $database, string $queryString): IList
     {
-        $this->notifier->notifyNote($query);
+        $this->notifier->notifyNote($queryString);
 
-        $query = $database->query($query);
+        $query = $database->query($queryString);
+        Assertion::isInstanceOf($query, \PDOStatement::class);
         $query->execute();
+        $data = $query->fetchAll(\PDO::FETCH_ASSOC);
+        Assertion::isArray($data);
 
-        return ListCollection::ofT('array', $query->fetchAll(\PDO::FETCH_ASSOC));
+        return ListCollection::fromT('array', $data);
     }
 
     private function storeCurrentTimestamps(IList $data, Timestamps $timestamps, string $primaryKeyId): void
     {
         $this->notifier->notifyStoreCurrentTimestamps($data);
 
-        $data->each(function (array $row) use ($primaryKeyId, $timestamps) {
+        $data->each(function (array $row) use ($primaryKeyId, $timestamps): void {
             $timestamps->getTimestampMap()->each(
-                function (Timestamp $timestamp) use ($primaryKeyId, $row, $timestamps) {
+                function (Timestamp $timestamp) use ($primaryKeyId, $row, $timestamps): void {
                     $column = $timestamp->getColumn();
-                    $currentTimestamp = $row[$column] ?? null;
+                    $currentTimestamp = (new RowValue($row, $column))->getStringValue();
 
                     if ($currentTimestamp) {
-                        $timestamps->setCurrent($row[$primaryKeyId], $currentTimestamp);
+                        $timestamps->setCurrent(new PrimaryKey($row, $primaryKeyId), $currentTimestamp);
 
                         if ($timestamp->isGreaterThanCurrentValue($currentTimestamp)) {
                             $timestamp->setCurrentValue($currentTimestamp);
