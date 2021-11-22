@@ -33,14 +33,14 @@ class Timestamp
     /** @var string */
     private $default;
 
-    /** @var string */
-    private $lastValue;
+    /** @var ?string */
+    private $lastValue = null;
 
-    /** @var string */
-    private $currentValue;
+    /** @var ?string */
+    private $currentValue = null;
 
-    /** @var string */
-    private $updated;
+    /** @var ?string */
+    private $updated = null;
 
     public function __construct(
         string $type,
