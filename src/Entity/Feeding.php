@@ -7,7 +7,7 @@ use MF\Collection\Immutable\Generic\IMap;
 class Feeding
 {
     /** @var IMap<string, FeedingBatch> */
-    private $batchMap;
+    private IMap $batchMap;
 
     public function __construct(IMap $batchMap)
     {

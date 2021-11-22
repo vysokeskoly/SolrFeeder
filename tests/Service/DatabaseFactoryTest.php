@@ -10,11 +10,9 @@ use VysokeSkoly\SolrFeeder\Tests\AbstractTestCase;
 
 class DatabaseFactoryTest extends AbstractTestCase
 {
-    /** @var DatabaseFactory */
-    private $databaseFactory;
+    private DatabaseFactory $databaseFactory;
 
-    /** @var XmlParser */
-    private $configParser;
+    private XmlParser $configParser;
 
     protected function setUp(): void
     {

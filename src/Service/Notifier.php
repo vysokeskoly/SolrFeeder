@@ -9,8 +9,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Notifier
 {
-    /** @var SymfonyStyle|null */
-    private $io;
+    private ?SymfonyStyle $io = null;
 
     public function setIo(SymfonyStyle $io): void
     {

@@ -31,8 +31,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class LockHandler
 {
-    /** @var string */
-    private $file;
+    private string $file;
     /** @var resource|null|false */
     private $handle;
 
@@ -42,7 +41,7 @@ class LockHandler
      *
      * @throws IOException If the lock directory could not be created or is not writable
      */
-    public function __construct($name, $lockPath = null)
+    public function __construct(string $name, ?string $lockPath = null)
     {
         $lockPath = $lockPath ?: sys_get_temp_dir();
 
@@ -66,7 +65,7 @@ class LockHandler
      * @throws IOException If the lock file could not be created or opened
      * @return bool Returns true if the lock was acquired, false otherwise
      */
-    public function lock($blocking = false)
+    public function lock(bool $blocking = false): bool
     {
         if ($this->handle) {
             return true;
@@ -92,7 +91,7 @@ class LockHandler
         restore_error_handler();
 
         if (!$this->handle) {
-            throw new IOException($error, 0, null, $this->file);
+            throw new IOException((string) $error, 0, null, $this->file);
         }
 
         // On Windows, even if PHP doc says the contrary, LOCK_NB works, see

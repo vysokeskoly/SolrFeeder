@@ -10,8 +10,7 @@ use VysokeSkoly\SolrFeeder\Tests\AbstractTestCase;
 
 class DataMapperTest extends AbstractTestCase
 {
-    /** @var DataMapper */
-    private $dataMapper;
+    private DataMapper $dataMapper;
 
     protected function setUp(): void
     {

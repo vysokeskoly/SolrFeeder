@@ -4,23 +4,17 @@ namespace VysokeSkoly\SolrFeeder\Entity;
 
 class Config
 {
-    /** @var string */
-    private $lockFile;
+    private string $lockFile;
 
-    /** @var string */
-    private $statusReportFile;
+    private string $statusReportFile;
 
-    /** @var Database */
-    private $database;
+    private Database $database;
 
-    /** @var Timestamps */
-    private $timestamps;
+    private Timestamps $timestamps;
 
-    /** @var Feeding */
-    private $feeding;
+    private Feeding $feeding;
 
-    /** @var Solr */
-    private $solr;
+    private Solr $solr;
 
     public function __construct(
         string $lockFile,

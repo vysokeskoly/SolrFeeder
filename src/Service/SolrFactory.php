@@ -10,10 +10,9 @@ use VysokeSkoly\SolrFeeder\Entity\Solr;
 
 class SolrFactory
 {
-    /** @var Notifier */
-    private $notifier;
-    /** @var EventDispatcherInterface */
-    private $eventDispatcher;
+    private Notifier $notifier;
+
+    private EventDispatcherInterface $eventDispatcher;
 
     public function __construct(Notifier $notifier, EventDispatcherInterface $eventDispatcher)
     {

@@ -14,14 +14,13 @@ class FeedingBatch
     public const TYPE_DELETE = 'delete';
     public const TYPES = [self::TYPE_ADD, self::TYPE_DELETE];
 
-    /** @var string */
-    private $type;
-    /** @var string */
-    private $idColumn;
-    /** @var string */
-    private $query;
+    private string $type;
+
+    private string $idColumn;
+
+    private string $query;
     /** @var IList<ColumnMapping> */
-    private $columnsMapping;
+    private IList $columnsMapping;
 
     public function __construct(string $type, string $idColumn, string $query, IList $columnsMapping)
     {

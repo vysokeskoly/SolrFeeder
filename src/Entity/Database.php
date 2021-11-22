@@ -18,17 +18,13 @@ class Database
 
     public const DSN_TEMPLATE = '%s:host=%s;port=%d;dbname=%s;';
 
-    /** @var string */
-    private $driver;
+    private string $driver;
 
-    /** @var string */
-    private $dsn;
+    private string $dsn;
 
-    /** @var string */
-    private $user;
+    private string $user;
 
-    /** @var string */
-    private $password;
+    private string $password;
 
     public function __construct(string $driver, string $connection, string $user, string $password)
     {

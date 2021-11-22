@@ -4,11 +4,9 @@ namespace VysokeSkoly\SolrFeeder\Entity;
 
 class ColumnMapping
 {
-    /** @var string */
-    private $column;
+    private string $column;
 
-    /** @var string */
-    private $destination;
+    private string $destination;
 
     /** @var ?string */
     private $separator;

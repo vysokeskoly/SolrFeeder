@@ -6,10 +6,9 @@ use Assert\Assertion;
 
 class PrimaryKey
 {
-    /** @var array */
-    private $row;
-    /** @var string */
-    private $primaryKeyColumn;
+    private array $row;
+
+    private string $primaryKeyColumn;
 
     public function __construct(array $row, string $primaryKeyColumn)
     {

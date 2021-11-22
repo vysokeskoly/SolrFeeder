@@ -10,11 +10,9 @@ use VysokeSkoly\SolrFeeder\Service\Notifier;
 
 class FeedCommand extends AbstractCommand
 {
-    /** @var FeedFacade */
-    private $feedFacade;
+    private FeedFacade $feedFacade;
 
-    /** @var Notifier */
-    private $notifier;
+    private Notifier $notifier;
 
     public function __construct(FeedFacade $feedFacade, Notifier $notifier)
     {

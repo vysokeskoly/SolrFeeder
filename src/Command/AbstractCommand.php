@@ -11,14 +11,13 @@ abstract class AbstractCommand extends Command
 {
     public const COMMAND_PREFIX = 'solr-feeder:';
 
-    /** @var SymfonyStyle */
-    protected $io;
+    protected SymfonyStyle $io;
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->io = new SymfonyStyle($input, $output);
         $this->io->title('VysokeSkoly/SolrFeeder runs just for you :)');
-        $this->io->section($this->getName());
+        $this->io->section((string) $this->getName());
     }
 
     public function setName(string $name): self

@@ -14,14 +14,11 @@ use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
 class DatabaseModel
 {
-    /** @var DataMapper */
-    private $dataMapper;
+    private DataMapper $dataMapper;
 
-    /** @var StringHelper */
-    private $stringHelper;
+    private StringHelper $stringHelper;
 
-    /** @var Notifier */
-    private $notifier;
+    private Notifier $notifier;
 
     public function __construct(DataMapper $dataMapper, StringHelper $stringHelper, Notifier $notifier)
     {

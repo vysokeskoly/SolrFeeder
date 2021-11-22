@@ -80,7 +80,7 @@
             "@test"
         ],
         "test": "bin/phpunit -c phpunit.xml.dist",
-        "phpstan": "bin/phpstan analyze -l 7 -c phpstan.neon src tests",
+        "phpstan": "bin/phpstan analyze -l 8 -c phpstan.neon src tests",
         "fix": [
             "bin/ecs check --ansi --clear-cache --fix -- src/ tests/"
         ],
