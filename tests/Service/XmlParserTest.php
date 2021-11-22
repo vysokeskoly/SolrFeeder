@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Tests\Service;
 
@@ -23,12 +23,12 @@ class XmlParserTest extends TestCase
     /** @var XmlParser */
     private $xmlParser;
 
-    public function setUp()
+    protected function setUp(): void
     {
         $this->xmlParser = new XmlParser();
     }
 
-    public function testShouldParseConfigFile()
+    public function testShouldParseConfigFile(): void
     {
         $configPath = __DIR__ . '/../Fixtures/config.xml';
 
@@ -43,7 +43,7 @@ class XmlParserTest extends TestCase
             ),
             new Timestamps(
                 'var/timestamp/last-timestamps.xml',
-                Map::ofKT('string', Timestamp::class, [
+                Map::fromKT('string', Timestamp::class, [
                     'timestamp' => new Timestamp(
                         'timestamp',
                         'ts',
@@ -68,12 +68,12 @@ class XmlParserTest extends TestCase
                 ]),
                 $this->xmlParser
             ),
-            new Feeding(Map::ofKT('string', FeedingBatch::class, [
+            new Feeding(Map::fromKT('string', FeedingBatch::class, [
                 'add' => new FeedingBatch(
                     'add',
                     'study_id',
                     'SELECT * FROM studies_solr WHERE updated >= %%LAST_UPDATED%% ORDER BY updated ASC',
-                    ListCollection::ofT(ColumnMapping::class, [
+                    ListCollection::fromT(ColumnMapping::class, [
                         new ColumnMapping('study_keyword', 'study_keyword', '|'),
                         new ColumnMapping('study_name', 'study_name'),
                         new ColumnMapping('study_name', 'study_name_str'),
@@ -83,7 +83,8 @@ class XmlParserTest extends TestCase
                 'delete' => new FeedingBatch(
                     'delete',
                     'study_id',
-                    'SELECT study_id, deleted FROM studies_solr WHERE deleted >= %%LAST_DELETED%%'
+                    'SELECT study_id, deleted FROM studies_solr WHERE deleted >= %%LAST_DELETED%%',
+                    new ListCollection(ColumnMapping::class)
                 ),
             ])),
             new Solr(
@@ -99,11 +100,11 @@ class XmlParserTest extends TestCase
         $this->assertEquals($expectedConfig, $config);
     }
 
-    public function testShouldParseTimestamps()
+    public function testShouldParseTimestamps(): void
     {
         $path = __DIR__ . '/../Fixtures/timestamps.xml';
 
-        $expectedTimestamps = Map::ofKT('string', 'string', [
+        $expectedTimestamps = Map::fromKT('string', 'string', [
             'deleted' => '2017-07-13 09:08:59.78',
             'updated' => '2017-08-07 04:11:27.855',
             'timestamp' => '1970-01-01 00:00:00.0',

@@ -1,21 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Tests;
 
-use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
 abstract class AbstractTestCase extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * @before
      */
-    public function init()
+    public function init(): void
     {
         $dir = __DIR__ . '/../var';
         if (file_exists($dir)) {
-            (new Process('rm -rf ' . $dir))->run();
+            (new Process(['rm', '-rf', $dir]))->run();
         }
     }
 
@@ -26,10 +28,5 @@ abstract class AbstractTestCase extends TestCase
         } catch (\PDOException $e) {
             $this->markTestSkipped(sprintf('Database factory test skipped due: %s', $e->getMessage()));
         }
-    }
-
-    public function tearDown()
-    {
-        m::close();
     }
 }

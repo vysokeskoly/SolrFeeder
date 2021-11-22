@@ -4,6 +4,7 @@
 namespace VysokeSkoly\SolrFeeder;
 
 use Symfony\Component\Console\Application;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use VysokeSkoly\SolrFeeder\Command\FeedCommand;
 use VysokeSkoly\SolrFeeder\Facade\FeedFacade;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
@@ -42,12 +43,13 @@ $composer = json_decode(file_get_contents(__DIR__ . '/../composer.json'), true);
 
 // services definition
 $notifier = new Notifier();
+$eventDispatcher = new EventDispatcher();
 
 $feedFacade = new FeedFacade(
     new XmlParser(),
     new DatabaseFactory(),
     new DatabaseModel(new DataMapper($notifier), new StringHelper(), $notifier),
-    new SolrFactory($notifier),
+    new SolrFactory($notifier, $eventDispatcher),
     new SolrFeeder($notifier, new TimestampUpdater()),
     new Log()
 );

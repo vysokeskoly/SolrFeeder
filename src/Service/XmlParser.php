@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Service;
 
@@ -17,7 +17,7 @@ use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 
 class XmlParser
 {
-    const ATTR = '@attributes';
+    public const ATTR = '@attributes';
 
     public function parseConfig(string $configPath): Config
     {
@@ -37,15 +37,17 @@ class XmlParser
     {
         $xml = $this->loadXml($configPath);
 
-        return json_decode(json_encode($xml), true);
+        return json_decode((string) json_encode($xml), true);
     }
 
     private function loadXml(string $configPath): \SimpleXMLElement
     {
         Assertion::file($configPath);
         $xmlContent = file_get_contents($configPath);
+        $xml = simplexml_load_string((string) $xmlContent, \SimpleXMLElement::class, \LIBXML_NOCDATA);
+        Assertion::isInstanceOf($xml, \SimpleXMLElement::class);
 
-        return simplexml_load_string($xmlContent, null, LIBXML_NOCDATA);
+        return $xml;
     }
 
     private function parseLockFile(array $dataArray): string
@@ -60,12 +62,12 @@ class XmlParser
 
     private function parseDatabase(array $dataArray): Database
     {
-        list(
+        [
             'driver' => $driver,
             'connection' => $connection,
             'user' => $user,
             'password' => $password,
-            ) = $dataArray['db'];
+            ] = $dataArray['db'];
 
         $dsn = str_replace('jdbc:', '', $connection);
         $password = empty($password) ? '' : $password;
@@ -75,21 +77,21 @@ class XmlParser
 
     private function parseTimestamps(array $dataArray): Timestamps
     {
-        list(
+        [
             self::ATTR => $attributes,
             'timestamp' => $timestamps,
-            ) = $dataArray['db']['timestamps'];
+            ] = $dataArray['db']['timestamps'];
 
         $timestampMap = new Map('string', Timestamp::class);
         foreach ($timestamps as $timestamp) {
-            list(
+            [
                 'type' => $type,
                 'name' => $name,
                 'column' => $column,
                 'lastValuePlaceholder' => $lastValuePlaceholder,
                 'currValuePlaceholder' => $currentValuePlaceholder,
                 'default' => $default
-                ) = $timestamp[self::ATTR];
+                ] = $timestamp[self::ATTR];
 
             Assertion::same('datetime', $type, 'Only available type is "datetime" now.');
 
@@ -104,32 +106,32 @@ class XmlParser
 
     private function parseFeeding(array $dataArray): Feeding
     {
-        list(
+        [
             'feedingBatch' => $feedingBatch,
-            ) = $dataArray['db']['feeding'];
+            ] = $dataArray['db']['feeding'];
 
         $batchMap = new Map('string', FeedingBatch::class);
 
         foreach ($this->normalizeMultiNode($feedingBatch) as $batch) {
-            list('name' => $name, 'type' => $type) = $batch[self::ATTR];
-            list('idColumn' => $idColumn, 'mainSelect' => $query) = $batch;
+            ['name' => $name, 'type' => $type] = $batch[self::ATTR];
+            ['idColumn' => $idColumn, 'mainSelect' => $query] = $batch;
 
             $mapping = empty($batch['columnMap']['map'])
-                ? null
-                : ListCollection::ofT('array', $this->normalizeMultiNode($batch['columnMap']['map']))
-                    ->map(
-                        function (array $mapping): ColumnMapping {
-                            $attr = $mapping[self::ATTR];
-                            list('src' => $column, 'dst' => $destination) = $attr;
+                ? ListCollection::fromT(ColumnMapping::class, [])
+                : ListCollection::createT(
+                    ColumnMapping::class,
+                    $this->normalizeMultiNode($batch['columnMap']['map']),
+                    function (array $mapping): ColumnMapping {
+                        $attr = $mapping[self::ATTR];
+                        ['src' => $column, 'dst' => $destination] = $attr;
 
-                            return new ColumnMapping(
-                                $column,
-                                $destination,
-                                $this->parseSeparator($attr['separator'] ?? null)
-                            );
-                        },
-                        ColumnMapping::class
-                    );
+                        return new ColumnMapping(
+                            $column,
+                            $destination,
+                            $this->parseSeparator($attr['separator'] ?? null)
+                        );
+                    }
+                );
 
             $batchMap = $batchMap->set($name, new FeedingBatch($type, $idColumn, $query, $mapping));
         }
@@ -137,7 +139,7 @@ class XmlParser
         return new Feeding($batchMap);
     }
 
-    private function normalizeMultiNode($node)
+    private function normalizeMultiNode(array $node): array
     {
         return isset($node[self::ATTR])
             ? [$node]
@@ -146,19 +148,19 @@ class XmlParser
 
     private function parseSeparator(?string $separator): ?string
     {
-        return empty($separator) ? $separator : str_replace("\\", '', $separator);
+        return empty($separator) ? $separator : str_replace('\\', '', $separator);
     }
 
     private function parseSolr(array $dataArray): Solr
     {
-        list(
+        [
             'url' => $url,
             'connectionType' => $connectionType,
             'readTimeout' => $readTimeout,
             'batchSizeDocs' => $batchSize,
-            ) = $dataArray['feeder']['solr'];
+            ] = $dataArray['feeder']['solr'];
 
-        return new Solr($url, $connectionType, $readTimeout, $batchSize);
+        return new Solr($url, $connectionType, (int) $readTimeout, (int) $batchSize);
     }
 
     public function parseTimestampsFile(string $path): IMap

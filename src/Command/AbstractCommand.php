@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Command;
 
@@ -9,7 +9,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 abstract class AbstractCommand extends Command
 {
-    const COMMAND_PREFIX = 'solr-feeder:';
+    public const COMMAND_PREFIX = 'solr-feeder:';
 
     /** @var SymfonyStyle */
     protected $io;
@@ -21,7 +21,7 @@ abstract class AbstractCommand extends Command
         $this->io->section($this->getName());
     }
 
-    public function setName($name)
+    public function setName(string $name): self
     {
         return parent::setName(self::COMMAND_PREFIX . $name);
     }

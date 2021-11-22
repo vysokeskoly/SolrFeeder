@@ -15,7 +15,7 @@ $ composer install --no-dev
 ```
 
 ## Requirements
-- `php7.1`
+- `php7.3`
 
 ## How to run it?
 

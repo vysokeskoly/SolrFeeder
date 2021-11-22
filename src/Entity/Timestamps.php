@@ -1,10 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Entity;
 
 use MF\Collection\Immutable\Generic\IMap;
 use MF\Collection\Mutable\Generic\Map;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
+use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
 class Timestamps
 {
@@ -47,7 +48,7 @@ class Timestamps
         $filename = $this->getFileFullPath();
         if (!$this->lastValuesLoaded && file_exists($filename)) {
             $this->xmlParser->parseTimestampsFile($filename)
-                ->each(function (string $value, string $type) {
+                ->each(function (string $value, string $type): void {
                     /** @var Timestamp $timestamp */
                     $timestamp = $this->timestampMap->get($type);
 
@@ -57,7 +58,7 @@ class Timestamps
         }
     }
 
-    public function saveValuesToFile()
+    public function saveValuesToFile(): void
     {
         $fileName = $this->getFileFullPath();
         $dirName = dirname($fileName);
@@ -77,7 +78,9 @@ class Timestamps
         );
 
         if (!file_exists($dirName)) {
-            mkdir($dirName, 0777, true);
+            if (!mkdir($dirName, 0777, true) && !is_dir($dirName)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirName));
+            }
         }
 
         $xml->saveXML($fileName);
@@ -88,13 +91,15 @@ class Timestamps
         return __DIR__ . '/../../' . $this->filePath;
     }
 
-    public function setCurrent(string $primaryKey, string $currentTimestamp): void
+    public function setCurrent(PrimaryKey $primaryKey, string $currentTimestamp): void
     {
-        $this->current->set($primaryKey, $currentTimestamp);
+        $this->current->set($primaryKey->getValue(), $currentTimestamp);
     }
 
-    public function getCurrentTimestamp(string $primaryKeyValue): ?string
+    public function getCurrentTimestamp(PrimaryKey $primaryKey): ?string
     {
+        $primaryKeyValue = $primaryKey->getValue();
+
         return $this->current->containsKey($primaryKeyValue)
             ? $this->current->get($primaryKeyValue)
             : null;

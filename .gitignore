@@ -4,6 +4,12 @@
 bin/
 !/bin/solr-feeder-console
 
-.php_cs.cache
-
 var/
+
+.phpunit
+.phpunit.result.cache
+/phpunit.xml
+
+# tools
+/tools/**
+!/tools/*/composer.*

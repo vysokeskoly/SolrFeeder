@@ -1,32 +1,27 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Facade;
 
-use Symfony\Component\Filesystem\LockHandler;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
 use VysokeSkoly\SolrFeeder\Service\Log;
 use VysokeSkoly\SolrFeeder\Service\SolrFactory;
 use VysokeSkoly\SolrFeeder\Service\SolrFeeder;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
+use VysokeSkoly\SolrFeeder\Utils\LockHandler;
 
 class FeedFacade
 {
     /** @var XmlParser */
     private $xmlParser;
-
     /** @var DatabaseFactory */
     private $databaseFactory;
-
     /** @var DatabaseModel */
     private $model;
-
     /** @var SolrFactory */
     private $solrFactory;
-
     /** @var SolrFeeder */
     private $feeder;
-
     /** @var Log */
     private $log;
 
@@ -72,7 +67,7 @@ class FeedFacade
             $lock->release();
 
             return $status;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $status = 1;
 
             $this->log->saveStatusReport($config->getStatusReportFile(), $status, $e->getMessage());

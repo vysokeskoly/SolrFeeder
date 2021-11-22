@@ -1,7 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Tests\Service;
 
+use Assert\Assertion;
 use VysokeSkoly\SolrFeeder\Entity\Config;
 use VysokeSkoly\SolrFeeder\Service\DatabaseFactory;
 use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
@@ -22,7 +23,7 @@ class DatabaseModelTest extends AbstractTestCase
     /** @var DatabaseFactory */
     private $databaseFactory;
 
-    public function setUp()
+    protected function setUp(): void
     {
         $notifier = new Notifier();
         $this->databaseFactory = new DatabaseFactory();
@@ -30,7 +31,7 @@ class DatabaseModelTest extends AbstractTestCase
         $this->model = new DatabaseModel(new DataMapper($notifier), new StringHelper(), $notifier);
     }
 
-    public function testShouldFetchDataAndMapThem()
+    public function testShouldFetchDataAndMapThem(): void
     {
         $this->config = (new XmlParser())->parseConfig(__DIR__ . '/../Fixtures/mysql_test_map_config.xml');
 
@@ -61,7 +62,7 @@ class DatabaseModelTest extends AbstractTestCase
             'delete' => [],
         ];
 
-        $this->databaseSafeTest(function () use ($expectedData) {
+        $this->databaseSafeTest(function () use ($expectedData): void {
             $connection = $this->databaseFactory->createConnection($this->config->getDatabase());
             $this->prepareDatabaseForMap($connection);
 
@@ -73,18 +74,23 @@ class DatabaseModelTest extends AbstractTestCase
         });
     }
 
-    private function prepareDatabaseForMap(\PDO $connection)
+    private function prepareDatabaseForMap(\PDO $connection): void
     {
-        $connection->query('TRUNCATE TABLE study')->execute();
-        $connection->query(
+        $truncateQuery = $connection->query('TRUNCATE TABLE study');
+        Assertion::isInstanceOf($truncateQuery, \PDOStatement::class);
+        $truncateQuery->execute();
+
+        $query = $connection->query(
             "INSERT INTO study (study_name, study_keyword, updated) VALUES
               ('kybernetika', 'kybernetika|IT', '2017-08-06 12:22:45'),
               ('ekonomika', 'ekonomika|ekonomie', '2017-08-06 12:22:45'),
               ('zdravka', 'zdravka|zdravotnictví|medicína', '2017-08-06 12:22:45')"
-        )->execute();
+        );
+        Assertion::isInstanceOf($query, \PDOStatement::class);
+        $query->execute();
     }
 
-    public function testShouldFetchDataByLastTimestampsAndMapThem()
+    public function testShouldFetchDataByLastTimestampsAndMapThem(): void
     {
         $this->config = (new XmlParser())
             ->parseConfig(__DIR__ . '/../Fixtures/mysql_test_map_config_with_timestamps.xml');
@@ -112,7 +118,11 @@ class DatabaseModelTest extends AbstractTestCase
         $expectedCurrentUpdated = '2018-08-06 12:22:45';
         $expectedCurrentDeleted = '1970-01-01 00:00:00';
 
-        $this->databaseSafeTest(function () use ($expectedCurrentUpdated, $expectedCurrentDeleted, $expectedData) {
+        $this->databaseSafeTest(function () use (
+            $expectedCurrentUpdated,
+            $expectedCurrentDeleted,
+            $expectedData
+        ): void {
             $connection = $this->databaseFactory->createConnection($this->config->getDatabase());
             $this->prepareDatabaseForTimestamps($connection);
 
@@ -128,20 +138,27 @@ class DatabaseModelTest extends AbstractTestCase
         });
     }
 
-    private function prepareDatabaseForTimestamps(\PDO $connection)
+    private function prepareDatabaseForTimestamps(\PDO $connection): void
     {
-        $connection->query('TRUNCATE TABLE study')->execute();
-        $connection->query(
+        $truncateQuery = $connection->query('TRUNCATE TABLE study');
+        Assertion::isInstanceOf($truncateQuery, \PDOStatement::class);
+        $truncateQuery->execute();
+
+        $query = $connection->query(
             "INSERT INTO study (study_name, study_keyword, updated) VALUES
               ('kybernetika', 'kybernetika|IT', '2016-08-06 12:22:45'),
               ('ekonomika', 'ekonomika|ekonomie', '2018-08-06 12:22:45'),
               ('zdravka', 'zdravka|zdravotnictví|medicína', '2018-08-06 00:22:45')"
-        )->execute();
+        );
+        Assertion::isInstanceOf($query, \PDOStatement::class);
+        $query->execute();
     }
 
-    private function fillDatabase(\PDO $connection)
+    private function fillDatabase(\PDO $connection): void
     {
-        $connection->query('TRUNCATE TABLE study')->execute();
+        $truncateQuery = $connection->query('TRUNCATE TABLE study');
+        Assertion::isInstanceOf($truncateQuery, \PDOStatement::class);
+        $truncateQuery->execute();
 
         foreach (range(1, 150) as $i) {
             $values = [];
@@ -152,9 +169,10 @@ class DatabaseModelTest extends AbstractTestCase
                     "('$i _ $j _ zdravka', 'zdravka|zdravotnictví|medicína', '2018-08-06 00:22:45')",
                 ]);
             }
-            $query = "INSERT INTO study (study_name, study_keyword, updated) VALUES " . implode(',', $values);
-
-            $connection->query($query)->execute();
+            $queryString = 'INSERT INTO study (study_name, study_keyword, updated) VALUES ' . implode(',', $values);
+            $query = $connection->query($queryString);
+            Assertion::isInstanceOf($query, \PDOStatement::class);
+            $query->execute();
         }
     }
 }

@@ -1,22 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Entity;
 
+use function Functional\compose;
 use VysokeSkoly\SolrFeeder\Constant\Functions as f;
 use VysokeSkoly\SolrFeeder\Utils\Curry;
-use function Functional\compose;
 
 class Database
 {
-    const DRIVER_PGSQL = 'pgsql';
-    const DRIVER_MYSQL = 'mysql';
+    public const DRIVER_PGSQL = 'pgsql';
+    public const DRIVER_MYSQL = 'mysql';
 
-    const DRIVERS = [
+    public const DRIVERS = [
         'org.postgresql.Driver' => self::DRIVER_PGSQL,
         'org.mysql.Driver' => self::DRIVER_MYSQL,
     ];
 
-    const DSN_TEMPLATE = '%s:host=%s;port=%d;dbname=%s;';
+    public const DSN_TEMPLATE = '%s:host=%s;port=%d;dbname=%s;';
 
     /** @var string */
     private $driver;
@@ -40,7 +40,6 @@ class Database
 
     /**
      * @param string $connection 'jdbc:DRIVER://HOST:PORT/DB_NAME'
-     * @return string
      */
     private function parseDsn(string $connection): string
     {
@@ -49,8 +48,8 @@ class Database
         $splitHostAndDbName = $splitBy('/');
         $splitHostAndPort = $splitBy(':');
 
-        list($hostPort, $dbName) = compose($splitDriverAndRest, f::LAST, $splitHostAndDbName)($connection);
-        list($host, $port) = $splitHostAndPort($hostPort);
+        [$hostPort, $dbName] = compose($splitDriverAndRest, f::LAST, $splitHostAndDbName)($connection);
+        [$host, $port] = $splitHostAndPort($hostPort);
 
         return sprintf(self::DSN_TEMPLATE, $this->driver, $host, $port, $dbName);
     }

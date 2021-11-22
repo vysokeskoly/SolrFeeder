@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace VysokeSkoly\SolrFeeder\Command;
 
@@ -24,7 +24,7 @@ class FeedCommand extends AbstractCommand
         parent::__construct('feed');
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Feed data from database to SOLR by xml configuration')
@@ -42,7 +42,7 @@ class FeedCommand extends AbstractCommand
             $this->io->success('Done');
 
             return 0;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->io->error($e->getMessage());
 
             return $e->getCode() ?? 1;
