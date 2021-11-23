@@ -21,14 +21,14 @@
         }
     },
     "require": {
-        "php": "^7.3",
+        "php": "^7.4",
         "ext-json": "*",
         "ext-libxml": "*",
         "ext-simplexml": "*",
         "beberlei/assert": "^3.3",
         "guzzlehttp/guzzle": "^7.4",
         "lstrojny/functional-php": "^1.6",
-        "mf/collections-php": "^4.0",
+        "mf/collections-php": "^5.0",
         "solarium/solarium": "^6.1",
         "symfony/config": "^5.3",
         "symfony/console": "^5.3",
@@ -41,9 +41,9 @@
         "ext-pdo": "*",
         "mockery/mockery": "^1.4",
         "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "^0.12.99",
-        "phpstan/phpstan-beberlei-assert": "^0.12.6",
-        "phpstan/phpstan-phpunit": "^0.12.22",
+        "phpstan/phpstan": "^1.2",
+        "phpstan/phpstan-beberlei-assert": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/phpunit": "^9.5"
     },
     "bin": [
@@ -51,7 +51,7 @@
     ],
     "config": {
         "platform": {
-            "php": "7.3.16"
+            "php": "7.4.25"
         },
         "bin-dir": "bin",
         "sort-packages": true,
@@ -80,7 +80,7 @@
             "@test"
         ],
         "test": "bin/phpunit -c phpunit.xml.dist",
-        "phpstan": "bin/phpstan analyze -l 7 -c phpstan.neon src tests",
+        "phpstan": "bin/phpstan analyze -l 8 -c phpstan.neon src tests",
         "fix": [
             "bin/ecs check --ansi --clear-cache --fix -- src/ tests/"
         ],

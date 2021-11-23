@@ -14,14 +14,11 @@ use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 
 class DatabaseModelTest extends AbstractTestCase
 {
-    /** @var DatabaseModel */
-    private $model;
+    private DatabaseModel $model;
 
-    /** @var Config */
-    private $config;
+    private Config $config;
 
-    /** @var DatabaseFactory */
-    private $databaseFactory;
+    private DatabaseFactory $databaseFactory;
 
     protected function setUp(): void
     {

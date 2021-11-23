@@ -4,10 +4,9 @@ namespace VysokeSkoly\SolrFeeder\ValueObject;
 
 class RowValue
 {
-    /** @var array */
-    private $row;
-    /** @var string */
-    private $column;
+    private array $row;
+
+    private string $column;
 
     public function __construct(array $row, string $column)
     {

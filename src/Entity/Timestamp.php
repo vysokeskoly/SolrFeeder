@@ -18,29 +18,24 @@ class Timestamp
         self::TYPE_TIMESTAMP,
     ];
 
-    /** @var string */
-    private $type;
+    private string $type;
 
-    /** @var string */
-    private $column;
+    private string $column;
 
-    /** @var string */
-    private $lastValuePlaceholder;
+    private string $lastValuePlaceholder;
 
-    /** @var string */
-    private $currValuePlaceholder;
+    private string $currValuePlaceholder;
 
-    /** @var string */
-    private $default;
+    private string $default;
 
-    /** @var string */
-    private $lastValue;
+    /** @var ?string */
+    private $lastValue = null;
 
-    /** @var string */
-    private $currentValue;
+    /** @var ?string */
+    private $currentValue = null;
 
-    /** @var string */
-    private $updated;
+    /** @var ?string */
+    private $updated = null;
 
     public function __construct(
         string $type,

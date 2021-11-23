@@ -9,20 +9,16 @@ use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
 class Timestamps
 {
-    /** @var string */
-    private $filePath;
+    private string $filePath;
 
     /** @var IMap<string, Timestamp> */
-    private $timestampMap;
+    private IMap $timestampMap;
 
-    /** @var XmlParser */
-    private $xmlParser;
+    private XmlParser $xmlParser;
 
-    /** @var bool */
-    private $lastValuesLoaded = false;
+    private bool $lastValuesLoaded = false;
 
-    /** @var \MF\Collection\Mutable\Generic\IMap */
-    private $current;
+    private \MF\Collection\Mutable\Generic\IMap $current;
 
     public function __construct(string $filePath, IMap $timestampList, XmlParser $xmlParser)
     {

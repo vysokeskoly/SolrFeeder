@@ -10,24 +10,16 @@ class Solr
 {
     public const ENDPOINT = 'solr';
 
-    /** @var string */
-    private $host;
-    /** @var int */
-    private $port;
-    /** @var int */
-    private $path;
-    /** @var string */
-    private $connectionType;
-    /** @var string */
-    private $collection;
+    private string $host;
+    private int $port;
+    private string $path;
+    private string $connectionType;
+    private string $collection;
     /**
      * In milliseconds
-     *
-     * @var int
      */
-    private $readTimeout;
-    /** @var int */
-    private $batchSize;
+    private int $readTimeout;
+    private int $batchSize;
 
     public function __construct(
         string $url,

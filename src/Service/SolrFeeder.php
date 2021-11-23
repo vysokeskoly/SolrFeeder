@@ -15,11 +15,9 @@ use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
 class SolrFeeder
 {
-    /** @var Notifier */
-    private $notifier;
+    private Notifier $notifier;
 
-    /** @var TimestampUpdater */
-    private $timestampUpdater;
+    private TimestampUpdater $timestampUpdater;
 
     public function __construct(Notifier $notifier, TimestampUpdater $timestampUpdater)
     {

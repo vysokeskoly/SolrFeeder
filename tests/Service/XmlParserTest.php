@@ -20,8 +20,7 @@ use VysokeSkoly\SolrFeeder\Service\XmlParser;
  */
 class XmlParserTest extends TestCase
 {
-    /** @var XmlParser */
-    private $xmlParser;
+    private XmlParser $xmlParser;
 
     protected function setUp(): void
     {

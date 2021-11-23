@@ -8,8 +8,7 @@ use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
 class DataMapper
 {
-    /** @var Notifier */
-    private $notifier;
+    private Notifier $notifier;
 
     public function __construct(Notifier $notifier)
     {

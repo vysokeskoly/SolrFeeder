@@ -169,7 +169,7 @@ class XmlParser
 
         $xml = $this->loadXml($path);
         foreach ($xml->timestamp as $timestamp) {
-            $timestamps = $timestamps->set($timestamp->attributes()['name']->__toString(), $timestamp->__toString());
+            $timestamps = $timestamps->set((string) ($timestamp->attributes()['name'] ?? ''), $timestamp->__toString());
         }
 
         return $timestamps;
