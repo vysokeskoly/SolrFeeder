@@ -2,12 +2,15 @@
 
 namespace VysokeSkoly\SolrFeeder\Tests\Service;
 
+use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\ListCollection;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
+use VysokeSkoly\SolrFeeder\Service\DatabaseModel;
 use VysokeSkoly\SolrFeeder\Service\DataMapper;
 use VysokeSkoly\SolrFeeder\Service\Notifier;
 use VysokeSkoly\SolrFeeder\Tests\AbstractTestCase;
 
+/** @phpstan-import-type Row from DatabaseModel */
 class DataMapperTest extends AbstractTestCase
 {
     private DataMapper $dataMapper;
@@ -19,18 +22,23 @@ class DataMapperTest extends AbstractTestCase
 
     public function testShouldMapRowsByColumnsMapping(): void
     {
-        $mapping = ListCollection::fromT(ColumnMapping::class, [
+        /** @phpstan-var IList<ColumnMapping> $mapping */
+        $mapping = ListCollection::from([
             new ColumnMapping('keywords', 'keywords', '|'),
             new ColumnMapping('names', 'names'),
             new ColumnMapping('names', 'names_str', ', '),
             new ColumnMapping('updated', '_ignored'),
         ]);
-        $rows = ListCollection::fromT('array', [
+
+        /** @phpstan-var IList<Row> $rows */
+        $rows = ListCollection::from([
             ['id' => '1', 'names' => null, 'keywords' => null, 'updated' => '2017-08-06 12:22:45'],
             ['id' => '2', 'names' => 'one', 'keywords' => 'k_one', 'updated' => '2017-08-06 12:22:45'],
             ['id' => '3', 'names' => 'one, two', 'keywords' => 'k_one|k_two', 'updated' => '2017-08-06 12:22:45'],
         ]);
-        $expectedRows = ListCollection::fromT('array', [
+
+        /** @phpstan-var IList<Row> $expectedRows */
+        $expectedRows = ListCollection::from([
             ['id' => '1', 'names' => null, 'keywords' => [], 'names_str' => []],
             ['id' => '2', 'names' => 'one', 'keywords' => ['k_one'], 'names_str' => ['one']],
             ['id' => '3', 'names' => 'one, two', 'keywords' => ['k_one', 'k_two'], 'names_str' => ['one', 'two']],

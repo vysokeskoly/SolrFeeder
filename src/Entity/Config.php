@@ -4,32 +4,14 @@ namespace VysokeSkoly\SolrFeeder\Entity;
 
 class Config
 {
-    private string $lockFile;
-
-    private string $statusReportFile;
-
-    private Database $database;
-
-    private Timestamps $timestamps;
-
-    private Feeding $feeding;
-
-    private Solr $solr;
-
     public function __construct(
-        string $lockFile,
-        string $statusReportFile,
-        Database $database,
-        Timestamps $timestamps,
-        Feeding $feeding,
-        Solr $solr
+        private readonly string $lockFile,
+        private readonly string $statusReportFile,
+        private readonly Database $database,
+        private readonly Timestamps $timestamps,
+        private readonly Feeding $feeding,
+        private readonly Solr $solr,
     ) {
-        $this->lockFile = $lockFile;
-        $this->statusReportFile = $statusReportFile;
-        $this->timestamps = $timestamps;
-        $this->database = $database;
-        $this->feeding = $feeding;
-        $this->solr = $solr;
     }
 
     public function getLockFile(): string

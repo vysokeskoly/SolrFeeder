@@ -17,7 +17,7 @@ jobs:
             -   name: '[PHP] Setup'
                 uses: shivammathur/setup-php@v2
                 with:
-                    php-version: 7.4
+                    php-version: 8.1
                     extensions: mbstring, intl
                     coverage: xdebug
 
@@ -39,7 +39,7 @@ jobs:
                 env:
                     COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     COVERALLS_PARALLEL: true
-                    COVERALLS_FLAG_NAME: ${{ github.job }}-PHP-7.4
+                    COVERALLS_FLAG_NAME: ${{ github.job }}-PHP-8.1
                 run: |
                     composer global require php-coveralls/php-coveralls
                     ~/.composer/vendor/bin/php-coveralls --coverage_clover=./code-coverage/clover.xml --json_path=./code-coverage/coveralls-upload.json -v

@@ -4,3 +4,4 @@ pre-build:
             commit: GIT_COMMIT
             url:    GIT_URL
             branch: GIT_BRANCH
+            tag:    GIT_TAG

@@ -2,6 +2,7 @@
 
 namespace VysokeSkoly\SolrFeeder\Tests\Service;
 
+use MF\Collection\Immutable\Generic\IMap;
 use MF\Collection\Immutable\Generic\ListCollection;
 use MF\Collection\Immutable\Generic\Map;
 use PHPUnit\Framework\TestCase;
@@ -38,60 +39,60 @@ class XmlParserTest extends TestCase
                 'org.postgresql.Driver',
                 'postgresql://dbvysokeskoly:5432/vysokeskoly',
                 'vysokeskoly',
-                'vysokeskoly'
+                'vysokeskoly',
             ),
             new Timestamps(
                 'var/timestamp/last-timestamps.xml',
-                Map::fromKT('string', Timestamp::class, [
-                    'timestamp' => new Timestamp(
+                (new Map())
+                    ->set('timestamp', new Timestamp(
                         'timestamp',
                         'ts',
                         '%%LAST_TIMESTAMP%%',
                         '%%CURRENT_TIMESTAMP%%',
-                        '1970-01-01 00:00:00'
-                    ),
-                    'updated' => new Timestamp(
+                        '1970-01-01 00:00:00',
+                    ))
+                    ->set('updated', new Timestamp(
                         'updated',
                         'updated',
                         '%%LAST_UPDATED%%',
                         '%%CURRENT_UPDATED%%',
-                        '1970-01-01 00:00:00'
-                    ),
-                    'deleted' => new Timestamp(
+                        '1970-01-01 00:00:00',
+                    ))
+                    ->set('deleted', new Timestamp(
                         'deleted',
                         'deleted',
                         '%%LAST_DELETED%%',
                         '%%CURRENT_DELETED%%',
-                        '1970-01-01 00:00:00'
-                    ),
-                ]),
-                $this->xmlParser
+                        '1970-01-01 00:00:00',
+                    )),
+                $this->xmlParser,
             ),
-            new Feeding(Map::fromKT('string', FeedingBatch::class, [
-                'add' => new FeedingBatch(
-                    'add',
-                    'study_id',
-                    'SELECT * FROM studies_solr WHERE updated >= %%LAST_UPDATED%% ORDER BY updated ASC',
-                    ListCollection::fromT(ColumnMapping::class, [
-                        new ColumnMapping('study_keyword', 'study_keyword', '|'),
-                        new ColumnMapping('study_name', 'study_name'),
-                        new ColumnMapping('study_name', 'study_name_str'),
-                        new ColumnMapping('updated', '_ignored'),
-                    ])
-                ),
-                'delete' => new FeedingBatch(
-                    'delete',
-                    'study_id',
-                    'SELECT study_id, deleted FROM studies_solr WHERE deleted >= %%LAST_DELETED%%',
-                    new ListCollection(ColumnMapping::class)
-                ),
-            ])),
+            new Feeding(
+                (new Map())
+                    ->set('add', new FeedingBatch(
+                        'add',
+                        'study_id',
+                        'SELECT * FROM studies_solr WHERE updated >= %%LAST_UPDATED%% ORDER BY updated ASC',
+                        ListCollection::from([
+                            new ColumnMapping('study_keyword', 'study_keyword', '|'),
+                            new ColumnMapping('study_name', 'study_name'),
+                            new ColumnMapping('study_name', 'study_name_str'),
+                            new ColumnMapping('updated', '_ignored'),
+                        ]),
+                    ))
+                    ->set('delete', new FeedingBatch(
+                        'delete',
+                        'study_id',
+                        'SELECT study_id, deleted FROM studies_solr WHERE deleted >= %%LAST_DELETED%%',
+                        new ListCollection(),
+                    )),
+            ),
             new Solr(
                 'http://solr:8983/solr/vysokeskoly',
                 'http',
-                200000,
-                100
-            )
+                200_000,
+                100,
+            ),
         );
 
         $config = $this->xmlParser->parseConfig($configPath);
@@ -103,7 +104,8 @@ class XmlParserTest extends TestCase
     {
         $path = __DIR__ . '/../Fixtures/timestamps.xml';
 
-        $expectedTimestamps = Map::fromKT('string', 'string', [
+        /** @phpstan-var IMap<string, string> $expectedTimestamps */
+        $expectedTimestamps = Map::from([
             'deleted' => '2017-07-13 09:08:59.78',
             'updated' => '2017-08-07 04:11:27.855',
             'timestamp' => '1970-01-01 00:00:00.0',

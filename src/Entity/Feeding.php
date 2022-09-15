@@ -6,17 +6,12 @@ use MF\Collection\Immutable\Generic\IMap;
 
 class Feeding
 {
-    /** @var IMap<string, FeedingBatch> */
-    private IMap $batchMap;
-
-    public function __construct(IMap $batchMap)
+    /** @phpstan-param IMap<string, FeedingBatch> $batchMap */
+    public function __construct(private readonly IMap $batchMap)
     {
-        $this->batchMap = $batchMap;
     }
 
-    /**
-     * @return FeedingBatch[]|IMap
-     */
+    /** @phpstan-return IMap<string, FeedingBatch> */
     public function getBatchMap(): IMap
     {
         return $this->batchMap;

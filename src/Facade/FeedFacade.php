@@ -12,32 +12,14 @@ use VysokeSkoly\SolrFeeder\Utils\LockHandler;
 
 class FeedFacade
 {
-    private XmlParser $xmlParser;
-
-    private DatabaseFactory $databaseFactory;
-
-    private DatabaseModel $model;
-
-    private SolrFactory $solrFactory;
-
-    private SolrFeeder $feeder;
-
-    private Log $log;
-
     public function __construct(
-        XmlParser $xmlParser,
-        DatabaseFactory $databaseFactory,
-        DatabaseModel $model,
-        SolrFactory $solrFactory,
-        SolrFeeder $feeder,
-        Log $log
+        private readonly XmlParser $xmlParser,
+        private readonly DatabaseFactory $databaseFactory,
+        private readonly DatabaseModel $model,
+        private readonly SolrFactory $solrFactory,
+        private readonly SolrFeeder $feeder,
+        private readonly Log $log,
     ) {
-        $this->xmlParser = $xmlParser;
-        $this->databaseFactory = $databaseFactory;
-        $this->model = $model;
-        $this->solrFactory = $solrFactory;
-        $this->feeder = $feeder;
-        $this->log = $log;
     }
 
     public function feedDataToSolr(string $configPath): int

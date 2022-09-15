@@ -13,7 +13,7 @@ class DatabaseTest extends TestCase
             'org.postgresql.Driver',
             'postgresql://dbvysokeskoly:5432/vysokeskoly',
             'vysokeskoly',
-            'vysokeskoly'
+            'vysokeskoly',
         );
 
         $expectedDsn = sprintf('%s:host=%s;port=%d;dbname=%s;', 'pgsql', 'dbvysokeskoly', 5432, 'vysokeskoly');
@@ -27,7 +27,7 @@ class DatabaseTest extends TestCase
             'org.mysql.Driver',
             'mysql://dbvysokeskoly:3306/vysokeskoly',
             'vysokeskoly',
-            'vysokeskoly'
+            'vysokeskoly',
         );
 
         $expectedDsn = sprintf('%s:host=%s;port=%d;dbname=%s;', 'mysql', 'dbvysokeskoly', 3306, 'vysokeskoly');

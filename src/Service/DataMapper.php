@@ -6,15 +6,21 @@ use MF\Collection\Immutable\Generic\IList;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
 use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
+/**
+ * @phpstan-type Row array
+ * @phpstan-type MappedRow array
+ */
 class DataMapper
 {
-    private Notifier $notifier;
-
-    public function __construct(Notifier $notifier)
+    public function __construct(private readonly Notifier $notifier)
     {
-        $this->notifier = $notifier;
     }
 
+    /**
+     * @phpstan-param IList<Row> $rows
+     * @phpstan-param IList<ColumnMapping> $columnMappings
+     * @phpstan-return IList<MappedRow>
+     */
     public function mapRows(IList $rows, IList $columnMappings): IList
     {
         $isMapping = !$columnMappings->isEmpty();
@@ -64,8 +70,7 @@ class DataMapper
         return $rows;
     }
 
-    /** @return null|string|array */
-    private function mapRow(?string $value, ?string $separator)
+    private function mapRow(?string $value, ?string $separator): string|array|null
     {
         if (empty($separator)) {
             return $value;

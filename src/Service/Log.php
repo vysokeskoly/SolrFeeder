@@ -10,7 +10,9 @@ class Log
             $dirName = dirname($filePath);
 
             if (!file_exists($dirName)) {
-                mkdir($dirName, 0777, true);
+                if (!mkdir($dirName, 0777, true) && !is_dir($dirName)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirName));
+                }
             }
         }
 
@@ -20,8 +22,8 @@ class Log
                 '%d %s %s',
                 $status,
                 (new \DateTime())->format('Y-m-d\TH:i:s'),
-                $message
-            )
+                $message,
+            ),
         );
     }
 }

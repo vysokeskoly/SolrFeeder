@@ -4,14 +4,8 @@ namespace VysokeSkoly\SolrFeeder\ValueObject;
 
 class RowValue
 {
-    private array $row;
-
-    private string $column;
-
-    public function __construct(array $row, string $column)
+    public function __construct(private readonly array $row, private readonly string $column)
     {
-        $this->row = $row;
-        $this->column = $column;
     }
 
     public function getStringValue(): ?string

@@ -3,35 +3,26 @@
 namespace VysokeSkoly\SolrFeeder\Entity;
 
 use MF\Collection\Immutable\Generic\IMap;
-use MF\Collection\Mutable\Generic\Map;
+use MF\Collection\Immutable\Generic\Map;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
 use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
 class Timestamps
 {
-    private string $filePath;
-
-    /** @var IMap<string, Timestamp> */
-    private IMap $timestampMap;
-
-    private XmlParser $xmlParser;
-
     private bool $lastValuesLoaded = false;
+    /** @phpstan-var IMap<string, string> */
+    private IMap $current;
 
-    private \MF\Collection\Mutable\Generic\IMap $current;
-
-    public function __construct(string $filePath, IMap $timestampList, XmlParser $xmlParser)
-    {
-        $this->filePath = $filePath;
-        $this->timestampMap = $timestampList;
-        $this->xmlParser = $xmlParser;
-
-        $this->current = new Map('string', 'string');
+    /** @phpstan-param IMap<string, Timestamp> $timestampMap */
+    public function __construct(
+        private readonly string $filePath,
+        private readonly IMap $timestampMap,
+        private readonly XmlParser $xmlParser,
+    ) {
+        $this->current = new Map();
     }
 
-    /**
-     * @return IMap|Timestamp[]
-     */
+    /** @phpstan-return IMap<string, Timestamp> */
     public function getTimestampMap(): IMap
     {
         $this->loadLastValuesFromFile();
@@ -44,7 +35,7 @@ class Timestamps
         $filename = $this->getFileFullPath();
         if (!$this->lastValuesLoaded && file_exists($filename)) {
             $this->xmlParser->parseTimestampsFile($filename)
-                ->each(function (string $value, string $type): void {
+                ->each(function (string $value, string $type = ''): void {
                     /** @var Timestamp $timestamp */
                     $timestamp = $this->timestampMap->get($type);
 
@@ -62,7 +53,7 @@ class Timestamps
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><timestamps/>');
         $xml->addAttribute('updatedOn', (new \DateTime())->format('Y-m-d H:i:s.vP'));
 
-        $this->getTimestampMap()->reduce(
+        $xml = $this->getTimestampMap()->reduce(
             function (\SimpleXMLElement $xml, Timestamp $timestamp) {
                 $xml
                     ->addChild('timestamp', $timestamp->getCurrentUpdated())
@@ -70,7 +61,7 @@ class Timestamps
 
                 return $xml;
             },
-            $xml
+            $xml,
         );
 
         if (!file_exists($dirName)) {
@@ -89,7 +80,7 @@ class Timestamps
 
     public function setCurrent(PrimaryKey $primaryKey, string $currentTimestamp): void
     {
-        $this->current->set($primaryKey->getValue(), $currentTimestamp);
+        $this->current = $this->current->set($primaryKey->getValue(), $currentTimestamp);
     }
 
     public function getCurrentTimestamp(PrimaryKey $primaryKey): ?string

@@ -1,7 +1,7 @@
 {
     "name": "tools/pre-build",
     "require": {
-        "mf/pre-build": "^2.0"
+        "mf/pre-build": "^5.0"
     },
     "authors": [
         {

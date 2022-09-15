@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Added, Changed, Fixed, Removed) should be added as needed. -->
 ## Unreleased
+- Require php 8.1
+- [**BC**] Use php 8.1 codestyle
 
 ## 1.2.0 - 2021-11-23
 - Require php 7.4

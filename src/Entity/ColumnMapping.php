@@ -4,18 +4,11 @@ namespace VysokeSkoly\SolrFeeder\Entity;
 
 class ColumnMapping
 {
-    private string $column;
-
-    private string $destination;
-
-    /** @var ?string */
-    private $separator;
-
-    public function __construct(string $column, string $destination, string $separator = null)
-    {
-        $this->column = $column;
-        $this->destination = $destination;
-        $this->separator = $separator;
+    public function __construct(
+        private readonly string $column,
+        private readonly string $destination,
+        private readonly ?string $separator = null,
+    ) {
     }
 
     public function getColumn(): string

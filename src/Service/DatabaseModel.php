@@ -12,28 +12,27 @@ use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 use VysokeSkoly\SolrFeeder\ValueObject\RowValue;
 
+/**
+ * @phpstan-import-type Row from DataMapper
+ * @phpstan-import-type MappedRow from DataMapper
+ */
 class DatabaseModel
 {
-    private DataMapper $dataMapper;
-
-    private StringHelper $stringHelper;
-
-    private Notifier $notifier;
-
-    public function __construct(DataMapper $dataMapper, StringHelper $stringHelper, Notifier $notifier)
-    {
-        $this->dataMapper = $dataMapper;
-        $this->stringHelper = $stringHelper;
-        $this->notifier = $notifier;
+    public function __construct(
+        private readonly DataMapper $dataMapper,
+        private readonly StringHelper $stringHelper,
+        private readonly Notifier $notifier,
+    ) {
     }
 
+    /** @phpstan-return IList<MappedRow> */
     public function getData(\PDO $connection, Timestamps $timestamps, FeedingBatch $batch): IList
     {
         $this->notifier->notifyFetchData();
 
         $data = $this->fetchData(
             $connection,
-            $this->createQuery($batch->getQuery(), $timestamps->getTimestampMap()->values())
+            $this->createQuery($batch->getQuery(), $timestamps->getTimestampMap()->values()),
         );
 
         $this->notifier->notifyFetchedData($data);
@@ -42,25 +41,23 @@ class DatabaseModel
         return $this->dataMapper->mapRows($data, $batch->getColumnsMapping());
     }
 
+    /** @phpstan-param IList<Timestamp> $timestampList */
     private function createQuery(string $query, IList $timestampList): string
     {
         return $timestampList->reduce(
-            function (string $query, Timestamp $timestamp): string {
-                return $timestamp
-                    ->getPlaceholders()
-                    ->reduce(
-                        function (string $query, string $placeholder) use ($timestamp): string {
-                            return $this->stringHelper->contains($query, $placeholder)
-                                ? str_replace($placeholder, "'" . $timestamp->getValue($placeholder) . "'", $query)
-                                : $query;
-                        },
-                        $query
-                    );
-            },
-            $query
+            fn (string $query, Timestamp $timestamp) => $timestamp
+                ->getPlaceholders()
+                ->reduce(
+                    fn (string $query, string $placeholder) => $this->stringHelper->contains($query, $placeholder)
+                        ? str_replace($placeholder, "'" . $timestamp->getValue($placeholder) . "'", $query)
+                        : $query,
+                    $query,
+                ),
+            $query,
         );
     }
 
+    /** @phpstan-return IList<Row> */
     private function fetchData(\PDO $database, string $queryString): IList
     {
         $this->notifier->notifyNote($queryString);
@@ -71,9 +68,10 @@ class DatabaseModel
         $data = $query->fetchAll(\PDO::FETCH_ASSOC);
         Assertion::isArray($data);
 
-        return ListCollection::fromT('array', $data);
+        return ListCollection::from($data);
     }
 
+    /** @phpstan-param IList<Row> $data */
     private function storeCurrentTimestamps(IList $data, Timestamps $timestamps, string $primaryKeyId): void
     {
         $this->notifier->notifyStoreCurrentTimestamps($data);
@@ -91,7 +89,7 @@ class DatabaseModel
                             $timestamp->setCurrentValue($currentTimestamp);
                         }
                     }
-                }
+                },
             );
 
             $this->notifier->notifyProgress();

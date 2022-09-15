@@ -3,7 +3,7 @@
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use Assert\Assertion;
-use MF\Collection\Generic\IList;
+use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Mutable\Generic\ListCollection;
 use Solarium\Client;
 use Solarium\Core\Query\DocumentInterface;
@@ -13,24 +13,22 @@ use VysokeSkoly\SolrFeeder\Entity\Timestamp;
 use VysokeSkoly\SolrFeeder\Entity\Timestamps;
 use VysokeSkoly\SolrFeeder\ValueObject\PrimaryKey;
 
+/** @phpstan-import-type MappedRow from DataMapper */
 class SolrFeeder
 {
-    private Notifier $notifier;
-
-    private TimestampUpdater $timestampUpdater;
-
-    public function __construct(Notifier $notifier, TimestampUpdater $timestampUpdater)
-    {
-        $this->notifier = $notifier;
-        $this->timestampUpdater = $timestampUpdater;
+    public function __construct(
+        private readonly Notifier $notifier,
+        private readonly TimestampUpdater $timestampUpdater,
+    ) {
     }
 
+    /** @phpstan-param IList<MappedRow> $data */
     public function feedSolr(
         Client $solr,
         FeedingBatch $batch,
         IList $data,
         int $batchSize,
-        Timestamps $timestamps
+        Timestamps $timestamps,
     ): void {
         $this->notifier->notifyFeeding();
 
@@ -49,17 +47,19 @@ class SolrFeeder
         $timestamps->saveValuesToFile();
     }
 
+    /** @phpstan-param IList<MappedRow> $data */
     private function add(
         Client $solr,
         string $primaryKeyColumn,
         IList $data,
         int $batchSize,
-        Timestamps $timestamps
+        Timestamps $timestamps,
     ): void {
         $this->notifier->notifyPreparingAndSendingToSolr('add', $data);
 
         $update = $solr->createUpdate();
-        $batch = new ListCollection(DocumentInterface::class);
+        /** @var IList<DocumentInterface> $batch */
+        $batch = new ListCollection();
         /** @var PrimaryKey|null $primaryKey */
         $primaryKey = null;
 
@@ -87,7 +87,9 @@ class SolrFeeder
                 $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_UPDATED, $primaryKey);
 
                 $update = $solr->createUpdate();
-                $batch = new ListCollection(DocumentInterface::class);
+
+                /** @var IList<DocumentInterface> $batch */
+                $batch = new ListCollection();
             }
 
             $this->notifier->notifyProgress();
@@ -104,7 +106,7 @@ class SolrFeeder
         Timestamps $timestamps,
         Query $update,
         string $type,
-        ?PrimaryKey $primaryKey
+        ?PrimaryKey $primaryKey,
     ): void {
         if ($primaryKey === null) {
             return;
@@ -117,17 +119,19 @@ class SolrFeeder
         $this->notifier->notifyUpdate($result);
     }
 
+    /** @phpstan-param IList<MappedRow> $data */
     private function delete(
         Client $solr,
         string $primaryKeyColumn,
         IList $data,
         int $batchSize,
-        Timestamps $timestamps
+        Timestamps $timestamps,
     ): void {
         $this->notifier->notifyPreparingAndSendingToSolr('delete', $data);
 
         $update = $solr->createUpdate();
-        $batch = new ListCollection('int');
+        /** @var IList<int> $batch */
+        $batch = new ListCollection();
         /** @var PrimaryKey|null $primaryKey */
         $primaryKey = null;
 
@@ -148,7 +152,8 @@ class SolrFeeder
                 $update->addDeleteByIds($batch->toArray());
                 $this->sendAddToSolr($solr, $timestamps, $update, Timestamp::TYPE_DELETED, $primaryKey);
 
-                $batch = new ListCollection('int');
+                /** @var IList<int> $batch */
+                $batch = new ListCollection();
             }
             $this->notifier->notifyProgress();
         });

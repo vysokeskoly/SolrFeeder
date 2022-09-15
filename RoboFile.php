@@ -3,6 +3,7 @@
 require __DIR__ . '/vendor/vysokeskoly/deb-build/src/autoload.php';
 
 use Robo\Common\ResourceExistenceChecker;
+use Robo\Symfony\ConsoleIO;
 use Robo\Tasks;
 use VysokeSkoly\Build\ComposerParserTrait;
 use VysokeSkoly\Build\FpmCheckerTrait;
@@ -25,7 +26,7 @@ class RoboFile extends Tasks
      * @param array $options
      * @return int
      */
-    public function buildDeb($options = ['dev-build' => false])
+    public function buildDeb(ConsoleIO $io, $options = ['dev-build' => false])
     {
         $this->stopOnFail();
 
@@ -68,7 +69,7 @@ class RoboFile extends Tasks
         }
 
         // Copy required files
-        foreach (['robo.phar', 'composer.json', 'composer.lock', 'RoboFile.php'] as $fileToCopy) {
+        foreach (['bin/robo', 'composer.json', 'composer.lock', 'RoboFile.php'] as $fileToCopy) {
             $this->_copy(__DIR__ . '/' . $fileToCopy, $appInstallDir . '/' . $fileToCopy);
         }
 
@@ -115,7 +116,7 @@ class RoboFile extends Tasks
             ->arg('.')
             ->run();
 
-        $this->io()->success('Done');
+        $io->success('Done');
 
         return 0;
     }

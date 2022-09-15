@@ -3,9 +3,11 @@
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use Assert\Assertion;
+use MF\Collection\Immutable\Generic\IList;
 use MF\Collection\Immutable\Generic\IMap;
 use MF\Collection\Immutable\Generic\ListCollection;
 use MF\Collection\Immutable\Generic\Map;
+use MF\Collection\Immutable\Generic\Seq;
 use VysokeSkoly\SolrFeeder\Entity\ColumnMapping;
 use VysokeSkoly\SolrFeeder\Entity\Config;
 use VysokeSkoly\SolrFeeder\Entity\Database;
@@ -29,7 +31,7 @@ class XmlParser
             $this->parseDatabase($dataArray),
             $this->parseTimestamps($dataArray),
             $this->parseFeeding($dataArray),
-            $this->parseSolr($dataArray)
+            $this->parseSolr($dataArray),
         );
     }
 
@@ -67,7 +69,7 @@ class XmlParser
             'connection' => $connection,
             'user' => $user,
             'password' => $password,
-            ] = $dataArray['db'];
+        ] = $dataArray['db'];
 
         $dsn = str_replace('jdbc:', '', $connection);
         $password = empty($password) ? '' : $password;
@@ -80,9 +82,10 @@ class XmlParser
         [
             self::ATTR => $attributes,
             'timestamp' => $timestamps,
-            ] = $dataArray['db']['timestamps'];
+        ] = $dataArray['db']['timestamps'];
 
-        $timestampMap = new Map('string', Timestamp::class);
+        /** @phpstan-var IMap<string, Timestamp> $timestampMap */
+        $timestampMap = new Map();
         foreach ($timestamps as $timestamp) {
             [
                 'type' => $type,
@@ -91,13 +94,13 @@ class XmlParser
                 'lastValuePlaceholder' => $lastValuePlaceholder,
                 'currValuePlaceholder' => $currentValuePlaceholder,
                 'default' => $default
-                ] = $timestamp[self::ATTR];
+            ] = $timestamp[self::ATTR];
 
             Assertion::same('datetime', $type, 'Only available type is "datetime" now.');
 
             $timestampMap = $timestampMap->set(
                 $name,
-                new Timestamp($name, $column, $lastValuePlaceholder, $currentValuePlaceholder, $default)
+                new Timestamp($name, $column, $lastValuePlaceholder, $currentValuePlaceholder, $default),
             );
         }
 
@@ -108,18 +111,19 @@ class XmlParser
     {
         [
             'feedingBatch' => $feedingBatch,
-            ] = $dataArray['db']['feeding'];
+        ] = $dataArray['db']['feeding'];
 
-        $batchMap = new Map('string', FeedingBatch::class);
+        /** @phpstan-var IMap<string, FeedingBatch> $batchMap */
+        $batchMap = new Map();
 
         foreach ($this->normalizeMultiNode($feedingBatch) as $batch) {
             ['name' => $name, 'type' => $type] = $batch[self::ATTR];
             ['idColumn' => $idColumn, 'mainSelect' => $query] = $batch;
 
+            /** @phpstan-var IList<ColumnMapping> $mapping */
             $mapping = empty($batch['columnMap']['map'])
-                ? ListCollection::fromT(ColumnMapping::class, [])
-                : ListCollection::createT(
-                    ColumnMapping::class,
+                ? new ListCollection()
+                : ListCollection::create(
                     $this->normalizeMultiNode($batch['columnMap']['map']),
                     function (array $mapping): ColumnMapping {
                         $attr = $mapping[self::ATTR];
@@ -128,9 +132,9 @@ class XmlParser
                         return new ColumnMapping(
                             $column,
                             $destination,
-                            $this->parseSeparator($attr['separator'] ?? null)
+                            $this->parseSeparator($attr['separator'] ?? null),
                         );
-                    }
+                    },
                 );
 
             $batchMap = $batchMap->set($name, new FeedingBatch($type, $idColumn, $query, $mapping));
@@ -148,7 +152,9 @@ class XmlParser
 
     private function parseSeparator(?string $separator): ?string
     {
-        return empty($separator) ? $separator : str_replace('\\', '', $separator);
+        return empty($separator)
+            ? $separator
+            : str_replace('\\', '', $separator);
     }
 
     private function parseSolr(array $dataArray): Solr
@@ -158,20 +164,25 @@ class XmlParser
             'connectionType' => $connectionType,
             'readTimeout' => $readTimeout,
             'batchSizeDocs' => $batchSize,
-            ] = $dataArray['feeder']['solr'];
+        ] = $dataArray['feeder']['solr'];
 
         return new Solr($url, $connectionType, (int) $readTimeout, (int) $batchSize);
     }
 
+    /** @phpstan-return IMap<string, string> */
     public function parseTimestampsFile(string $path): IMap
     {
-        $timestamps = new Map('string', 'string');
+        return Seq::init(function () use ($path) {
+            $xml = $this->loadXml($path);
 
-        $xml = $this->loadXml($path);
-        foreach ($xml->timestamp as $timestamp) {
-            $timestamps = $timestamps->set((string) ($timestamp->attributes()['name'] ?? ''), $timestamp->__toString());
-        }
-
-        return $timestamps;
+            yield from $xml->timestamp;
+        })
+        ->reduce(
+            fn (IMap $timestamps, \SimpleXMLElement $timestamp) => $timestamps->set(
+                (string) ($timestamp->attributes()['name'] ?? ''),
+                $timestamp->__toString(),
+            ),
+            new Map(),
+        );
     }
 }

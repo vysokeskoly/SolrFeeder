@@ -14,22 +14,18 @@ class FeedingBatch
     public const TYPE_DELETE = 'delete';
     public const TYPES = [self::TYPE_ADD, self::TYPE_DELETE];
 
-    private string $type;
+    private readonly string $query;
 
-    private string $idColumn;
-
-    private string $query;
-    /** @var IList<ColumnMapping> */
-    private IList $columnsMapping;
-
-    public function __construct(string $type, string $idColumn, string $query, IList $columnsMapping)
-    {
+    /** @phpstan-param IList<ColumnMapping> $columnsMapping */
+    public function __construct(
+        private readonly string $type,
+        private readonly string $idColumn,
+        string $query,
+        private readonly IList $columnsMapping,
+    ) {
         Assertion::inArray($type, self::TYPES);
 
-        $this->type = $type;
-        $this->idColumn = $idColumn;
         $this->query = $this->normalizeQuery($query);
-        $this->columnsMapping = $columnsMapping;
     }
 
     private function normalizeQuery(string $query): string
@@ -58,9 +54,7 @@ class FeedingBatch
         return $this->query;
     }
 
-    /**
-     * @return IList<ColumnMapping>
-     */
+    /** @phpstan-return IList<ColumnMapping> */
     public function getColumnsMapping(): IList
     {
         return $this->columnsMapping;

@@ -2,6 +2,7 @@
 
 namespace VysokeSkoly\SolrFeeder\Tests\Entity;
 
+use MF\Collection\Immutable\Generic\IMap;
 use MF\Collection\Immutable\Generic\Map;
 use PHPUnit\Framework\TestCase;
 use VysokeSkoly\SolrFeeder\Entity\Timestamp;
@@ -13,27 +14,28 @@ class TimestampsTest extends TestCase
     {
         $configPath = __DIR__ . '/../Fixtures/config.xml';
 
-        $expectedTimestampList = Map::fromKT('string', Timestamp::class, [
+        /** @phpstan-var IMap<string, Timestamp> $expectedTimestampList */
+        $expectedTimestampList = Map::from([
             'timestamp' => new Timestamp(
                 'timestamp',
                 'ts',
                 '%%LAST_TIMESTAMP%%',
                 '%%CURRENT_TIMESTAMP%%',
-                '1970-01-01 00:00:00'
+                '1970-01-01 00:00:00',
             ),
             'updated' => new Timestamp(
                 'updated',
                 'updated',
                 '%%LAST_UPDATED%%',
                 '%%CURRENT_UPDATED%%',
-                '1970-01-01 00:00:00'
+                '1970-01-01 00:00:00',
             ),
             'deleted' => new Timestamp(
                 'deleted',
                 'deleted',
                 '%%LAST_DELETED%%',
                 '%%CURRENT_DELETED%%',
-                '1970-01-01 00:00:00'
+                '1970-01-01 00:00:00',
             ),
         ]);
 
@@ -69,7 +71,7 @@ class TimestampsTest extends TestCase
                 $this->assertSame(
                     $expectedValue,
                     $timestamp->getValue($placeholder),
-                    sprintf('Asserting type:"%s" by placeholder: "%s".', $type, $placeholder)
+                    sprintf('Asserting type:"%s" by placeholder: "%s".', $type, $placeholder),
                 );
             }
         }

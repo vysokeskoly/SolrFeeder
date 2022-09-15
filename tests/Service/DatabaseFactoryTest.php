@@ -11,7 +11,6 @@ use VysokeSkoly\SolrFeeder\Tests\AbstractTestCase;
 class DatabaseFactoryTest extends AbstractTestCase
 {
     private DatabaseFactory $databaseFactory;
-
     private XmlParser $configParser;
 
     protected function setUp(): void

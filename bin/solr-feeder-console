@@ -18,13 +18,15 @@ use VysokeSkoly\SolrFeeder\Service\TimestampUpdater;
 use VysokeSkoly\SolrFeeder\Service\XmlParser;
 use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 
-function requireIfExists(string $file)
+function requireIfExists(string $file): bool
 {
     if (file_exists($file)) {
-        return require_once $file;
+        require_once $file;
+
+        return true;
     }
 
-    return null;
+    return false;
 }
 
 if (!requireIfExists(__DIR__ . '/../vendor/autoload.php') // when used directly

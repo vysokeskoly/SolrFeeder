@@ -18,39 +18,18 @@ class Timestamp
         self::TYPE_TIMESTAMP,
     ];
 
-    private string $type;
-
-    private string $column;
-
-    private string $lastValuePlaceholder;
-
-    private string $currValuePlaceholder;
-
-    private string $default;
-
-    /** @var ?string */
-    private $lastValue = null;
-
-    /** @var ?string */
-    private $currentValue = null;
-
-    /** @var ?string */
-    private $updated = null;
+    private ?string $lastValue = null;
+    private ?string $currentValue = null;
+    private ?string $updated = null;
 
     public function __construct(
-        string $type,
-        string $column,
-        string $lastValuePlaceholder,
-        string $currValuePlaceholder,
-        string $default
+        private readonly string $type,
+        private readonly string $column,
+        private readonly string $lastValuePlaceholder,
+        private readonly string $currValuePlaceholder,
+        private readonly string $default,
     ) {
         Assertion::inArray($type, self::TYPES);
-
-        $this->type = $type;
-        $this->column = $column;
-        $this->lastValuePlaceholder = $lastValuePlaceholder;
-        $this->currValuePlaceholder = $currValuePlaceholder;
-        $this->default = $default;
     }
 
     public function setLastValue(string $lastValue): void
@@ -78,12 +57,13 @@ class Timestamp
         return $this->column;
     }
 
+    /** @phpstan-return IList<string> */
     public function getPlaceholders(): IList
     {
-        return ListCollection::fromT(
-            'string',
-            [$this->getLastValuePlaceholder(), $this->getCurrValuePlaceholder()]
-        );
+        return ListCollection::from([
+            $this->getLastValuePlaceholder(),
+            $this->getCurrValuePlaceholder(),
+        ]);
     }
 
     private function getLastValuePlaceholder(): string
@@ -98,14 +78,11 @@ class Timestamp
 
     public function getValue(string $placeholder): string
     {
-        switch ($placeholder) {
-            case $this->getLastValuePlaceholder():
-                return $this->lastValue ?? $this->default;
-            case $this->getCurrValuePlaceholder():
-                return $this->currentValue ?? $this->default;
-        }
-
-        return $this->default;
+        return match ($placeholder) {
+            $this->getLastValuePlaceholder() => $this->lastValue ?? $this->default,
+            $this->getCurrValuePlaceholder() => $this->currentValue ?? $this->default,
+            default => $this->default
+        };
     }
 
     public function update(?string $value): void
