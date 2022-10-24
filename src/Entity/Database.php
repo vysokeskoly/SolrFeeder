@@ -18,20 +18,17 @@ class Database
 
     public const DSN_TEMPLATE = '%s:host=%s;port=%d;dbname=%s;';
 
-    private string $driver;
+    private readonly string $driver;
+    private readonly string $dsn;
 
-    private string $dsn;
-
-    private string $user;
-
-    private string $password;
-
-    public function __construct(string $driver, string $connection, string $user, string $password)
-    {
+    public function __construct(
+        string $driver,
+        string $connection,
+        private readonly string $user,
+        private readonly string $password,
+    ) {
         $this->driver = self::DRIVERS[$driver] ?? $driver;
         $this->dsn = $this->parseDsn($connection);
-        $this->user = $user;
-        $this->password = $password;
     }
 
     /**

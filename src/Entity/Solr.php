@@ -10,27 +10,21 @@ class Solr
 {
     public const ENDPOINT = 'solr';
 
-    private string $host;
-    private int $port;
-    private string $path;
-    private string $connectionType;
-    private string $collection;
-    /**
-     * In milliseconds
-     */
-    private int $readTimeout;
-    private int $batchSize;
+    private readonly string $host;
+    private readonly int $port;
+    private readonly string $path;
+    private readonly string $collection;
+    /** In milliseconds */
+    private readonly int $readTimeout;
 
     public function __construct(
         string $url,
-        string $connectionType,
+        private readonly string $connectionType,
         int $readTimeout,
-        int $batchSize
+        private readonly int $batchSize,
     ) {
         [$this->host, $this->port, $this->path, $this->collection] = $this->parseUrl($url);
-        $this->connectionType = $connectionType;
         $this->readTimeout = $readTimeout;
-        $this->batchSize = $batchSize;
     }
 
     /**

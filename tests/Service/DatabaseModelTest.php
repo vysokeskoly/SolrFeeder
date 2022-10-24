@@ -15,9 +15,7 @@ use VysokeSkoly\SolrFeeder\Utils\StringHelper;
 class DatabaseModelTest extends AbstractTestCase
 {
     private DatabaseModel $model;
-
     private Config $config;
-
     private DatabaseFactory $databaseFactory;
 
     protected function setUp(): void
@@ -81,7 +79,7 @@ class DatabaseModelTest extends AbstractTestCase
             "INSERT INTO study (study_name, study_keyword, updated) VALUES
               ('kybernetika', 'kybernetika|IT', '2017-08-06 12:22:45'),
               ('ekonomika', 'ekonomika|ekonomie', '2017-08-06 12:22:45'),
-              ('zdravka', 'zdravka|zdravotnictví|medicína', '2017-08-06 12:22:45')"
+              ('zdravka', 'zdravka|zdravotnictví|medicína', '2017-08-06 12:22:45')",
         );
         Assertion::isInstanceOf($query, \PDOStatement::class);
         $query->execute();
@@ -145,7 +143,7 @@ class DatabaseModelTest extends AbstractTestCase
             "INSERT INTO study (study_name, study_keyword, updated) VALUES
               ('kybernetika', 'kybernetika|IT', '2016-08-06 12:22:45'),
               ('ekonomika', 'ekonomika|ekonomie', '2018-08-06 12:22:45'),
-              ('zdravka', 'zdravka|zdravotnictví|medicína', '2018-08-06 00:22:45')"
+              ('zdravka', 'zdravka|zdravotnictví|medicína', '2018-08-06 00:22:45')",
         );
         Assertion::isInstanceOf($query, \PDOStatement::class);
         $query->execute();

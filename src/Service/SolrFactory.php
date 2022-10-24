@@ -10,19 +10,15 @@ use VysokeSkoly\SolrFeeder\Entity\Solr;
 
 class SolrFactory
 {
-    private Notifier $notifier;
-
-    private EventDispatcherInterface $eventDispatcher;
-
-    public function __construct(Notifier $notifier, EventDispatcherInterface $eventDispatcher)
-    {
-        $this->notifier = $notifier;
-        $this->eventDispatcher = $eventDispatcher;
+    public function __construct(
+        private readonly Notifier $notifier,
+        private readonly EventDispatcherInterface $eventDispatcher,
+    ) {
     }
 
     public function createConnection(Solr $solrConfig): Client
     {
-        $this->notifier->notifyNote('Solarium version ' . Client::VERSION);
+        $this->notifier->notifyNote('Solarium version ' . Client::getVersion());
 
         $httpFactory = new HttpFactory();
         $adapter = new Psr18Adapter(new \GuzzleHttp\Client(), $httpFactory, $httpFactory);

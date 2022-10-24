@@ -3,7 +3,7 @@
 namespace VysokeSkoly\SolrFeeder\Service;
 
 use function Functional\with;
-use MF\Collection\IList;
+use MF\Collection\Immutable\Generic\IList;
 use Solarium\QueryType\Update\Result;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -16,19 +16,21 @@ class Notifier
         $this->io = $io;
     }
 
+    /** @phpstan-param IList<array> $rows */
     public function notifyRowsMapping(IList $rows): void
     {
         with($this->io, function (SymfonyStyle $io) use ($rows): void {
             $io->section('Mapping rows...');
-            $io->progressStart($rows->count());
+            $io->progressStart(count($rows));
         });
     }
 
+    /** @phpstan-param IList<array> $rows */
     public function notifyRowsMapped(IList $rows): void
     {
         with($this->io, function (SymfonyStyle $io) use ($rows): void {
             $this->finishProgress($io);
-            $io->success(sprintf('%d rows mapped.', $rows->count()));
+            $io->success(sprintf('%d rows mapped.', count($rows)));
         });
     }
 
@@ -50,11 +52,12 @@ class Notifier
         });
     }
 
+    /** @phpstan-param IList<array> $data */
     public function notifyPreparingAndSendingToSolr(string $type, IList $data): void
     {
         with($this->io, function (SymfonyStyle $io) use ($type, $data): void {
             $io->section(sprintf('Preparing batches and sending to solr <%s>', $type));
-            $io->progressStart($data->count());
+            $io->progressStart(count($data));
         });
     }
 
@@ -79,8 +82,8 @@ class Notifier
                     sprintf(
                         'Update query executed with status "%s". [in %s s]',
                         $result->getStatus(),
-                        $result->getQueryTime()
-                    )
+                        $result->getQueryTime(),
+                    ),
                 );
             }
         });
@@ -101,10 +104,11 @@ class Notifier
         });
     }
 
+    /** @phpstan-param IList<array> $data */
     public function notifyFetchedData(IList $data): void
     {
         with($this->io, function (SymfonyStyle $io) use ($data): void {
-            $io->success(sprintf('%d rows fetched.', $data->count()));
+            $io->success(sprintf('%d rows fetched.', count($data)));
         });
     }
 
@@ -115,11 +119,12 @@ class Notifier
         });
     }
 
+    /** @phpstan-param IList<array> $data */
     public function notifyStoreCurrentTimestamps(IList $data): void
     {
         with($this->io, function (SymfonyStyle $io) use ($data): void {
             $io->section('Storing current timestamps...');
-            $io->progressStart($data->count());
+            $io->progressStart(count($data));
         });
     }
 

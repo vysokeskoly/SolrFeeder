@@ -10,15 +10,8 @@ use VysokeSkoly\SolrFeeder\Service\Notifier;
 
 class FeedCommand extends AbstractCommand
 {
-    private FeedFacade $feedFacade;
-
-    private Notifier $notifier;
-
-    public function __construct(FeedFacade $feedFacade, Notifier $notifier)
+    public function __construct(private readonly FeedFacade $feedFacade, private readonly Notifier $notifier)
     {
-        $this->feedFacade = $feedFacade;
-        $this->notifier = $notifier;
-
         parent::__construct('feed');
     }
 
@@ -43,7 +36,7 @@ class FeedCommand extends AbstractCommand
         } catch (\Throwable $e) {
             $this->io->error($e->getMessage());
 
-            return $e->getCode() ?? 1;
+            return $e->getCode() ?: 1;
         }
     }
 }

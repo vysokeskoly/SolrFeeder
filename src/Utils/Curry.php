@@ -23,9 +23,7 @@ class Curry
 
     public static function trim(): callable
     {
-        $trim = function (string $characters, string $string) {
-            return trim($string, $characters);
-        };
+        $trim = fn (string $characters, string $string) => trim($string, $characters);
 
         return curry_n(2, $trim);
     }

@@ -74,10 +74,10 @@ class LockHandler
         $error = null;
 
         // Silence error reporting
-        set_error_handler(function ($errno, $msg) use (&$error): ?bool {
+        set_error_handler(function (int $errno, string $msg) use (&$error): bool {
             $error = $msg;
 
-            return null;
+            return true;
         });
 
         if (!$this->handle = fopen($this->file, 'rb')) {

@@ -17,6 +17,14 @@ $ composer install --no-dev
 ## Requirements
 - `php7.3`
 
+
+## Build deb package
+
+```bash
+bin/build-deb-app
+```
+
+
 ## How to run it?
 
 ### Show list of available commands

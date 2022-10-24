@@ -2,4 +2,3 @@ parameters:
     checkMissingIterableValueType: false
 
     ignoreErrors:
-        - '#Parameter .1 \$callback of function set_error_handler expects \(callable\(int, string, string, int, array\): bool\)\|null, Closure\(mixed, mixed\): bool\|null given#'

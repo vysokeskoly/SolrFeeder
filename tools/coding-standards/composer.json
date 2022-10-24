@@ -1,7 +1,7 @@
 {
     "name": "tools/coding-standards",
     "require-dev": {
-        "lmc/coding-standard": "^3.2"
+        "lmc/coding-standard": "^3.3"
     },
     "authors": [
         {
@@ -16,6 +16,9 @@
         "platform": {
             "php": "7.4.25"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

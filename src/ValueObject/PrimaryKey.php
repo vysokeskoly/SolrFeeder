@@ -6,14 +6,8 @@ use Assert\Assertion;
 
 class PrimaryKey
 {
-    private array $row;
-
-    private string $primaryKeyColumn;
-
-    public function __construct(array $row, string $primaryKeyColumn)
+    public function __construct(private readonly array $row, private readonly string $primaryKeyColumn)
     {
-        $this->row = $row;
-        $this->primaryKeyColumn = $primaryKeyColumn;
         Assertion::keyExists($this->row, $this->primaryKeyColumn);
     }
 
