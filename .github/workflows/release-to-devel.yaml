@@ -1,0 +1,183 @@
+name: Release to devel
+
+on:
+    push:
+        branches:
+            - 'integration/**'
+
+jobs:
+    checks:
+        runs-on: ubuntu-latest
+        name: Check application
+        steps:
+            # Setup
+            -   uses: actions/checkout@v3
+
+            -   name: '[PHP] Setup'
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: 8.1
+                    extensions: mbstring, intl
+
+            # Prepare application
+            -   name: '[INIT] Check composer.json'
+                run: composer validate --no-check-all --no-check-publish --no-check-lock
+
+            # Install dependencies
+            -   name: '[Install] Install composer dependencies'
+                run: composer install
+
+            # Check application
+            -   name: '[CHECK] analyze'
+                run: composer analyze
+
+            -   name: '[CHECK] phpstan'
+                run: composer phpstan
+
+            -   name: '[CHECK] Unit tests'
+                run: composer test-ci
+
+    download-deploy-console:
+        runs-on: ubuntu-latest
+        name: Download deploy-console
+        steps:
+            # Deploy console
+            -   name: '[DEPLOY-CONSOLE] Download deploy-console'
+                uses: dsaltares/fetch-gh-release-asset@master
+                with:
+                    repo: 'vysokeskoly/deploy-console'
+                    version: 'latest'
+                    file: 'deploy-console.phar'
+                    token: ${{ secrets.DEPLOY_CONSOLE_RELEASE_API_KEY }}
+
+            -   name: '[ARTIFACT] Upload a deploy-console'
+                uses: actions/upload-artifact@v3
+                with:
+                    name: deploy-console
+                    path: './deploy-console.phar'
+
+    build:
+        runs-on: ubuntu-latest
+        name: Build deb package
+        environment: devel
+        steps:
+            # Setup
+            -   uses: actions/checkout@v3
+
+            # Build
+            -   name: '[BUILD] Build deb package'
+                run: bin/build-deb-app
+                env:
+                    BUILD_NUMBER: ${{ github.run_id }}
+                    BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            -   name: '[ARTIFACT] Upload a deploy-console'
+                uses: actions/upload-artifact@v3
+                with:
+                    name: deb-package
+                    path: './*.deb'
+
+    release:
+        runs-on: ubuntu-latest
+        name: Release deb packages
+        needs:
+            - checks
+            - download-deploy-console
+            - build
+        concurrency:
+            group: ${{ format('{0}-{1}', github.workflow, github.job) }}
+        environment: devel
+        steps:
+            # Setup
+            -   uses: actions/checkout@v3
+
+            -   name: '[PHP] Setup PHP'
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: 8.1
+                    extensions: mbstring, intl
+
+            -   name: '[ARTIFACT] Download artifacts'
+                uses: actions/download-artifact@v3
+
+            -   name: '[ARTIFACT] Move to root'
+                run: |
+                    mv deb-package/* ./
+                    mv deploy-console/* ./
+
+            -   name: '[DEPLOY-CONSOLE] Grant execute for deploy-console'
+                run: chmod +x ./deploy-console.phar
+
+            -   name: '[DEPLOY-CONSOLE] Display deploy-console info'
+                run: ./deploy-console.phar -V
+
+            -   name: '[DEB] Display deb package'
+                run: ls -l *.deb
+
+            # Connect to VPN
+            -   name: '[VPN] Install Open VPN'
+                run: sudo apt-get install openvpn
+
+            -   name: '[VPN] Connect'
+                uses: golfzaptw/action-connect-ovpn@master
+                id: connect_vpn
+                with:
+                    PING_URL: '172.27.128.47'
+                    FILE_OVPN: '.github/vpn/config.ovpn'
+                    SECRET: ${{ secrets.VPN_USERNAME_PASSWORD }}
+                    TLS_KEY: ''
+                env:
+                    CA_CRT: ${{ secrets.VPN_CA }}
+                    USER_CRT: ${{ secrets.VPN_CRT }}
+                    USER_KEY: ${{ secrets.VPN_KEY }}
+
+            -   name: '[VPN] Check Connection'
+                run: echo ${{ steps.connect_vpn.outputs.STATUS }}
+
+            # SSH
+            -   name: '[SSH] Define IP for private servers'
+                run: |
+                    sudo echo "172.27.129.17  apback-2.devel" | sudo tee -a /etc/hosts
+                    sudo echo "172.27.128.47  release.vysokeskoly.cz" | sudo tee -a /etc/hosts
+
+            -   name: '[SSH] Prepare ssh key'
+                run: |
+                    mkdir -p /home/runner/.ssh
+                    echo '${{ secrets.SSH_KEY_RELEASE }}' > /home/runner/.ssh/id_rsa
+                    chmod 700 /home/runner/.ssh/
+                    chmod 600 /home/runner/.ssh/id_rsa
+
+            # Release to devel
+            -   name: '[RELEASE] Release deb to devel'
+                uses: nick-fields/retry@v2  # https://github.com/marketplace/actions/retry-step
+                with:
+                    timeout_minutes: 2
+                    max_attempts: 3
+                    #retry_on: timeout
+                    command: |
+                        ./deploy-console.phar d:release devel "Github release - ${{ github.ref_type }}: ${{ github.ref_name }}" -P
+
+            # Notify
+            -   name: Slack Notification - success
+                if: success()
+                uses: rtCamp/action-slack-notify@v2
+                env:
+                    SLACK_CHANNEL: release-devel
+                    SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+                    #SLACK_ICON: https://github.com/rtCamp.png?size=48
+                    SLACK_MESSAGE: ':rocket: Release successful :white_check_mark:'
+                    SLACK_TITLE: SolrFeeder - Release to devel
+                    SLACK_USERNAME: Github Action
+                    SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_DEVEL_WEBHOOK }}
+
+            -   name: Slack Notification - fail
+                if: failure()
+                uses: rtCamp/action-slack-notify@v2
+                env:
+                    SLACK_CHANNEL: release-devel
+                    SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+                    #SLACK_ICON: https://github.com/rtCamp.png?size=48
+                    SLACK_MESSAGE: ':rocket: Release failed :boom:'
+                    SLACK_TITLE: SolrFeeder - Release to devel
+                    SLACK_USERNAME: Github Action
+                    SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_DEVEL_WEBHOOK }}

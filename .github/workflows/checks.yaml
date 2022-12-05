@@ -11,7 +11,7 @@ jobs:
         name: "Markdown link check"
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
             -   uses: gaurav-nelson/github-action-markdown-link-check@v1
                 with:
                     use-verbose-mode: 'yes'
@@ -20,7 +20,7 @@ jobs:
         name: Shellcheck
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
             -   name: Run ShellCheck
                 uses: ludeeus/action-shellcheck@master
                 env:
@@ -30,7 +30,7 @@ jobs:
         name: 'Yamllint'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
             -   name: 'Yamllint'
                 uses: karancode/yamllint-github-action@master
                 with:

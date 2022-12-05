@@ -15,7 +15,7 @@ $ composer install --no-dev
 ```
 
 ## Requirements
-- `php7.3`
+- `php8.1`
 
 
 ## Build deb package

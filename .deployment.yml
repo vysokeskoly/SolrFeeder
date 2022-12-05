@@ -1,0 +1,26 @@
+deployment:
+    root: /home/runner/work/SolrFeeder/SolrFeeder
+
+    environment:
+        options: [ 'devel', 'prod' ]
+        pattern: '{SERVER}-{NODE}.{ENV}'
+
+    authorization:
+        user: deployment
+        key: /home/runner/.ssh/id_rsa
+
+    servers:
+        apback:
+            devel:
+                node: [ 2 ]
+            prod:
+                node: [ 2 ]
+
+    packages:
+        # SolrFeeder
+        vysokeskoly-solr-feeder:
+            servers: [ 'apback' ]
+            build:
+                type: deb
+                pattern: vysokeskoly-solr-feeder_.*?\.deb
+                archive: release
