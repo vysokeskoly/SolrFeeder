@@ -1,18 +1,21 @@
 name: PHP - Checks
 
 on:
-    #push:
+    push:
+        branches:
+            - master
+            - main
     pull_request:
-    #schedule:
-    #    -   cron:  '0 3 * * *'
+    schedule:
+        -   cron:  '0 3 * * *'
 
 jobs:
     checks:
         runs-on: ubuntu-latest
-        name: PHP-checks
+        name: Check application
         steps:
             # Setup
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
 
             -   name: '[PHP] Setup'
                 uses: shivammathur/setup-php@v2
@@ -22,14 +25,18 @@ jobs:
                     coverage: xdebug
 
             # Prepare application
-            -   name: '[INIT] Install dependencies'
-                run: composer install --no-progress
+            -   name: '[INIT] Check composer.json'
+                run: composer validate --no-check-all --no-check-publish --no-check-lock
+
+            # Install dependencies
+            -   name: '[Install] Install composer dependencies'
+                run: composer install
 
             # Check application
-            -   name: '[CHECK] codestyle'
+            -   name: '[CHECK] analyze'
                 run: composer analyze
 
-            -   name: '[CHECK] phpstan - src'
+            -   name: '[CHECK] phpstan'
                 run: composer phpstan
 
             -   name: '[CHECK] Unit tests'
@@ -44,11 +51,6 @@ jobs:
                     composer global require php-coveralls/php-coveralls
                     ~/.composer/vendor/bin/php-coveralls --coverage_clover=./code-coverage/clover.xml --json_path=./code-coverage/coveralls-upload.json -v
 
-    finish-tests:
-        name: Tests finished
-        needs: [ checks ]
-        runs-on: ubuntu-latest
-        steps:
             -   name: Notify Coveralls
                 uses: coverallsapp/github-action@master
                 with:

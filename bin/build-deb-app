@@ -3,16 +3,23 @@
 set -e
 
 if test -f "/vysokeskoly-in-docker"; then
-    composer install --optimize-autoloader --no-dev
+    echo "Build current app ..."
+    composer install --optimize-autoloader --no-dev --no-interaction
 
     echo "Add pre-build vars ..."
     source <(php bin/pre-build-console pre-build:parse-variables)
 
     echo "Build deb ..."
-    export BUILD_NUMBER=666
+    if [ -z "${BUILD_NUMBER}" ]; then
+      echo " - using a default build number"
+      export BUILD_NUMBER=666
+    fi
     bin/robo build:deb
 
     echo "Done"
 else
-    docker-compose --file deployment/docker-compose.yaml run deployment bin/build-deb-app
+    docker-compose --file deployment/docker-compose.yaml run \
+      -e BUILD_NUMBER="$BUILD_NUMBER" \
+      -e BUILD_URL="$BUILD_URL" \
+      deployment bin/build-deb-app
 fi
