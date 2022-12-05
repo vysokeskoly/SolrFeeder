@@ -28,6 +28,7 @@ class DataMapper
             $this->notifier->notifyRowsMapping($rows);
         }
 
+        /** @phpstan-var IList<array> $rows */
         $rows = !$isMapping
             ? $rows
             : $rows->map(function (array $row) use ($columnMappings): array {
