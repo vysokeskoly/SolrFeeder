@@ -18,7 +18,7 @@ if test -f "/vysokeskoly-in-docker"; then
 
     echo "Done"
 else
-    docker-compose --file deployment/docker-compose.yaml run \
+    docker compose --file deployment/docker-compose.yaml run \
       -e BUILD_NUMBER="$BUILD_NUMBER" \
       -e BUILD_URL="$BUILD_URL" \
       deployment bin/build-deb-app
