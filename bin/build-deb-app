@@ -7,6 +7,9 @@ if test -f "/vysokeskoly-in-docker"; then
     composer install --optimize-autoloader --no-dev --no-interaction
 
     echo "Add pre-build vars ..."
+    git config --global --add safe.directory /srv/www/app
+    php bin/pre-build-console pre-build:parse-variables
+    # shellcheck disable=1090
     source <(php bin/pre-build-console pre-build:parse-variables)
 
     echo "Build deb ..."
