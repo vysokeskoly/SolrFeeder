@@ -79,6 +79,6 @@ class DataMapper
 
         return empty($value)
             ? []
-            : explode($separator, $value);
+            : array_unique(explode($separator, $value));
     }
 }

@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Added, Changed, Fixed, Removed) should be added as needed. -->
 ## Unreleased
+- Separate unique values in mapping
 
 ## 2.1.0 - 2022-12-05
 - Update dependencies
