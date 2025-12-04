@@ -11,7 +11,7 @@ jobs:
         name: Check application
         steps:
             # Setup
-            -   uses: actions/checkout@v3
+            -   uses: actions/checkout@v6
 
             -   name: '[PHP] Setup'
                 uses: shivammathur/setup-php@v2
@@ -42,16 +42,25 @@ jobs:
         name: Download deploy-console
         steps:
             # Deploy console
+            -   name: '[DEPLOY-CONSOLE] Generate token'
+                uses: actions/create-github-app-token@v1
+                id: generate_token
+                with:
+                    app-id: ${{ secrets.APP_DEPLOY_CONSOLE_APP_ID }}
+                    private-key: ${{ secrets.APP_DEPLOY_CONSOLE_APP_PRIVATE_KEY }}
+                    owner: ${{ github.repository_owner }}
+                    repositories: deploy-console
+
             -   name: '[DEPLOY-CONSOLE] Download deploy-console'
                 uses: dsaltares/fetch-gh-release-asset@master
                 with:
                     repo: 'vysokeskoly/deploy-console'
                     version: 'latest'
                     file: 'deploy-console.phar'
-                    token: ${{ secrets.DEPLOY_CONSOLE_RELEASE_API_KEY }}
+                    token: ${{ steps.generate_token.outputs.token }}
 
             -   name: '[ARTIFACT] Upload a deploy-console'
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: deploy-console
                     path: './deploy-console.phar'
@@ -62,7 +71,7 @@ jobs:
         environment: devel
         steps:
             # Setup
-            -   uses: actions/checkout@v3
+            -   uses: actions/checkout@v6
 
             # Build
             -   name: '[BUILD] Build deb package'
@@ -72,7 +81,7 @@ jobs:
                     BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             -   name: '[ARTIFACT] Upload a deploy-console'
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: deb-package
                     path: './*.deb'
@@ -89,7 +98,7 @@ jobs:
         environment: devel
         steps:
             # Setup
-            -   uses: actions/checkout@v3
+            -   uses: actions/checkout@v6
 
             -   name: '[PHP] Setup PHP'
                 uses: shivammathur/setup-php@v2
@@ -98,7 +107,7 @@ jobs:
                     extensions: mbstring, intl
 
             -   name: '[ARTIFACT] Download artifacts'
-                uses: actions/download-artifact@v3
+                uses: actions/download-artifact@v4
 
             -   name: '[ARTIFACT] Move to root'
                 run: |
@@ -115,24 +124,40 @@ jobs:
                 run: ls -l *.deb
 
             # Connect to VPN
+            # there is a problem with compatibility of openvpn
+            # last version it worked on is 2.5.11-0ubuntu0.22.04.1
+            # from version 2.6.12-0ubuntu0.24.04.1 it is not working and must be fixed in the future
+            # see versions here: https://launchpad.net/ubuntu/+source/openvpn
             -   name: '[VPN] Install Open VPN'
-                run: sudo apt-get install openvpn
+                run: |
+                    sudo apt-get clean
+                    sudo rm -rf /var/lib/apt/lists/*
+                    sudo apt-get update
+                    sudo apt-get install -y libpkcs11-helper1
+                    wget http://security.ubuntu.com/ubuntu/pool/main/o/openvpn/openvpn_2.5.11-0ubuntu0.22.04.1_amd64.deb
+                    sudo dpkg -i openvpn_2.5.11-0ubuntu0.22.04.1_amd64.deb
+                    sudo apt-get -f install
+                    sudo apt-get install -y openvpn-systemd-resolved
+                    openvpn --version
 
-            -   name: '[VPN] Connect'
-                uses: golfzaptw/action-connect-ovpn@master
-                id: connect_vpn
-                with:
-                    PING_URL: '172.27.128.47'
-                    FILE_OVPN: '.github/vpn/config.ovpn'
-                    SECRET: ${{ secrets.VPN_USERNAME_PASSWORD }}
-                    TLS_KEY: ''
+            -   name: '[VPN] Prepare Certs'
+                shell: bash
+                run: |
+                    echo $CA_CRT | base64 -d > ca.crt
+                    echo $USER_CRT | base64 -d > client.crt
+                    echo $USER_KEY | base64 -d > client.key
                 env:
                     CA_CRT: ${{ secrets.VPN_CA }}
                     USER_CRT: ${{ secrets.VPN_CRT }}
                     USER_KEY: ${{ secrets.VPN_KEY }}
 
-            -   name: '[VPN] Check Connection'
-                run: echo ${{ steps.connect_vpn.outputs.STATUS }}
+            -   name: '[VPN] Connect'
+                uses: kota65535/github-openvpn-connect-action@v2
+                id: connect_vpn
+                with:
+                    config_file: .github/vpn/config.ovpn
+                    username: ${{ secrets.VPN_USERNAME }}
+                    password: ${{ secrets.VPN_PASSWORD }}
 
             # SSH
             -   name: '[SSH] Define IP for private servers'
@@ -151,7 +176,7 @@ jobs:
             -   name: '[RELEASE] Release deb to devel'
                 uses: nick-fields/retry@v2  # https://github.com/marketplace/actions/retry-step
                 with:
-                    timeout_minutes: 2
+                    timeout_minutes: 14
                     max_attempts: 3
                     #retry_on: timeout
                     command: |
