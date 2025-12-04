@@ -3,7 +3,7 @@
     "description": "Data feeder for SOLR",
     "license": "MIT",
     "type": "project",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "authors": [
         {
             "name": "Petr Chromec",
