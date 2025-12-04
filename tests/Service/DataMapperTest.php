@@ -35,6 +35,7 @@ class DataMapperTest extends AbstractTestCase
             ['id' => '1', 'names' => null, 'keywords' => null, 'updated' => '2017-08-06 12:22:45'],
             ['id' => '2', 'names' => 'one', 'keywords' => 'k_one', 'updated' => '2017-08-06 12:22:45'],
             ['id' => '3', 'names' => 'one, two', 'keywords' => 'k_one|k_two', 'updated' => '2017-08-06 12:22:45'],
+            ['id' => '4', 'names' => 'one, two, two', 'keywords' => 'k_one|k_two|k_two', 'updated' => '2017-08-06 12:22:45'],
         ]);
 
         /** @phpstan-var IList<Row> $expectedRows */
@@ -42,6 +43,7 @@ class DataMapperTest extends AbstractTestCase
             ['id' => '1', 'names' => null, 'keywords' => [], 'names_str' => []],
             ['id' => '2', 'names' => 'one', 'keywords' => ['k_one'], 'names_str' => ['one']],
             ['id' => '3', 'names' => 'one, two', 'keywords' => ['k_one', 'k_two'], 'names_str' => ['one', 'two']],
+            ['id' => '4', 'names' => 'one, two, two', 'keywords' => ['k_one', 'k_two'], 'names_str' => ['one', 'two']],
         ]);
 
         $result = $this->dataMapper->mapRows($rows, $mapping);
