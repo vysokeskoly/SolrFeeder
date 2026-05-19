@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Added, Changed, Fixed, Removed) should be added as needed. -->
 ## Unreleased
+- Allow fullpath to be absolute
 
 ## 2.2.0 - 2025-12-04
 - Separate unique values in mapping

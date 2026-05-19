@@ -1,0 +1,55 @@
+name: Release to prod
+
+on:
+    push:
+        branches:
+            - master
+            - main
+
+jobs:
+    prepare:
+        name: Prepare build metadata
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+        steps:
+            - name: Compute version
+              id: version
+              run: echo "version=$(date +'%Y-%m-%d-%H-%M-%S')-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+    cd:
+        name: Build ${{ matrix.domain }}
+        needs: [prepare]
+        strategy:
+            matrix:
+                domain: [vscz, vssk, vsde, cu]
+        uses: ./.github/workflows/cd.yaml
+        with:
+            domain: ${{ matrix.domain }}
+            prod: true
+            version: ${{ needs.prepare.outputs.version }}
+        permissions:
+            id-token: write
+            contents: read
+            packages: read
+
+    summarize:
+        name: Release summary
+        runs-on: ubuntu-latest
+        needs: [prepare, cd]
+        steps:
+            - uses: actions/github-script@v9.0.0
+              with:
+                  script: |
+                      const version = 'prod-${{ needs.prepare.outputs.version }}'
+                      const domains = ['vscz', 'vssk', 'vsde', 'cu']
+                      const svcContext = 'solrfeeder'
+                      const registry = '658735297577.dkr.ecr.eu-central-1.amazonaws.com'
+
+                      core.summary.addHeading('🚀 Release to prod')
+                      core.summary.addRaw('Built and pushed images for all domains:')
+                      core.summary.addList(domains.map(d => `${registry}/${d}-${svcContext}:${version}`))
+                      core.summary.addHeading('Version', 3)
+                      core.summary.addCodeBlock(version)
+                      core.summary.addRaw('Update <code>${svcContext}.image.tag</code> in <code>values-prod.yaml</code> to the version above.')
+                      core.summary.write()
