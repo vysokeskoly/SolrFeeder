@@ -75,6 +75,12 @@ class Timestamps
 
     private function getFileFullPath(): string
     {
+        // Support absolute paths (e.g. a mounted PVC at /var/solr-feeder/...)
+        // as well as legacy relative paths (resolved from the app root).
+        if (str_starts_with($this->filePath, '/')) {
+            return $this->filePath;
+        }
+
         return __DIR__ . '/../../' . $this->filePath;
     }
 
